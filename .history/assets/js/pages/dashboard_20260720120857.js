@@ -34,10 +34,10 @@
       <tr>
         <td>${Utils.formatDate(group.date)}</td>
         <td>${Utils.escapeHtml(group.site || '-')}</td>
-        <td class="text-truncate" title="${Utils.escapeHtml(group.jobDetail || '-')}">${Utils.escapeHtml(group.jobDetail || '-')}</td>
-        <td class="font-mono">${group.workerCount || 0} คน</td>
+        <td class="font-mono">${group.workerCount} คน</td>
+        <td class="font-mono">฿${Utils.money(group.totalNormal)}</td>
+        <td class="font-mono">฿${Utils.money(group.totalFixed)}</td>
         <td class="font-mono font-semibold" style="color:var(--blueprint-dark)">฿${Utils.money(group.totalNormal + group.totalFixed)}</td>
-        <td>${Utils.escapeHtml(group.requestedBy || '-')}</td>
         <td>
           <div class="flex gap-1">
             <button class="btn btn-outline btn-sm" data-edit-group="${Utils.escapeHtml(group.groupId)}">&#9998;</button>
@@ -68,17 +68,17 @@
               <tr>
                 <th>วันที่</th>
                 <th>ไซต์งาน</th>
-                <th>รายละเอียดงาน</th>
                 <th>จำนวนคน</th>
+                <th>ค่าแรงปกติ+OT</th>
+                <th>ค่าแรงเหมา</th>
                 <th>รวมจ่าย</th>
-                <th>ผู้สั่งงาน</th>
                 <th></th>
               </tr>
             </thead>
             <tbody id="log-rows">
               ${data.recentGroups && data.recentGroups.length
                 ? data.recentGroups.map(renderGroupRow).join('')
-                : `<tr><td colspan="6" class="text-center py-6" style="color:var(--ink-soft)">ยังไม่มีบันทึกงาน — เริ่มบันทึกได้ที่ปุ่มด้านบน</td></tr>`}
+                : `<tr><td colspan="7" class="text-center py-6" style="color:var(--ink-soft)">ยังไม่มีบันทึกงาน — เริ่มบันทึกได้ที่ปุ่มด้านบน</td></tr>`}
             </tbody>
           </table>
         </div>

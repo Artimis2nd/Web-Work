@@ -34,8 +34,8 @@
       <tr>
         <td>${Utils.formatDate(group.date)}</td>
         <td>${Utils.escapeHtml(group.site || '-')}</td>
-        <td class="text-truncate" title="${Utils.escapeHtml(group.jobDetail || '-')}">${Utils.escapeHtml(group.jobDetail || '-')}</td>
-        <td class="font-mono">${group.workerCount || 0} คน</td>
+        <td class="text-truncate" title="${Utils.escapeHtml(group.jobDetail || '-').replace(/"/g, '"')}">${Utils.escapeHtml(group.jobDetail || '-')}</td>
+        <td class="font-mono">${group.workerCount} คน</td>
         <td class="font-mono font-semibold" style="color:var(--blueprint-dark)">฿${Utils.money(group.totalNormal + group.totalFixed)}</td>
         <td>${Utils.escapeHtml(group.requestedBy || '-')}</td>
         <td>

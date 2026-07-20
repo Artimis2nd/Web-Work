@@ -13,7 +13,7 @@ const Utils = (() => {
     if (!d) return '-';
     const date = new Date(d);
     if (isNaN(date.getTime())) return String(d);
-    return date.toLocaleDateString('th-TH', { year: '2-digit', month: '2-digit', day: 'numeric' });
+    return date.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
   function toInputDate(d) {
@@ -98,7 +98,7 @@ const Utils = (() => {
             <span>SITE LEDGER</span>
           </div>
           ${navHtml}
-          <div class="mt-auto px-2 pt-4 text-xs" style="color:#6B7684">ระบบคิดค่าแรงคนงาน<br>v${APP_VERSION}</div>
+          <div class="mt-auto px-2 pt-4 text-xs" style="color:#6B7684">ระบบคิดค่าแรงคนงาน<br>v2.0</div>
         </aside>
 
         <div class="flex-1 min-w-0 flex flex-col">
@@ -115,10 +115,7 @@ const Utils = (() => {
           <main class="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto">
             <div class="mb-6 flex items-center justify-between gap-4">
               <h1 class="font-display text-2xl md:text-3xl font-semibold" style="color:var(--ink)">${pageTitle}</h1>
-              <div id="status-badge" class="status-badge status-loading">
-                <span class="status-progress-label">⏳ 0%</span>
-                <div class="status-progress-track"><div id="status-progress-fill" class="status-progress-fill" style="width:0%"></div></div>
-              </div>
+              <div id="status-badge" class="status-badge">&#9679; กำลังตรวจสอบ...</div>
             </div>
             <div id="page-content"></div>
           </main>
@@ -132,57 +129,6 @@ const Utils = (() => {
       toggle.addEventListener('click', () => {
         document.getElementById('mobile-nav').classList.toggle('hidden');
       });
-    }
-
-    // ตรวจสอบสถานะเชื่อมต่อหลังจาก DOM พร้อม
-    setTimeout(checkStatus, 300);
-  }
-
-  /**
-   * ตรวจสอบสถานะการเชื่อมต่อกับ Google Sheets ผ่าน API
-   * แสดง progress bar 0%→100% แบบสมจริง + Online/Offline
-   */
-  async function checkStatus() {
-    const badge = document.getElementById('status-badge');
-    if (!badge) return;
-
-    const label = badge.querySelector('.status-progress-label');
-    const fill = document.getElementById('status-progress-fill');
-    if (!label || !fill) return;
-
-    // เริ่ม progress animation
-    let pct = 0;
-    badge.className = 'status-badge status-loading';
-
-    const interval = setInterval(() => {
-      // 0→60% เร็ว (4.5วิแรก) 60→85% ช้าลง
-      if (pct < 60) pct += 2;
-      else if (pct < 85) pct += 0.8;
-      if (pct > 85) pct = Math.min(pct, 85);
-      fill.style.width = pct + '%';
-      label.textContent = '⏳ ' + Math.floor(pct) + '%';
-    }, 150);
-
-    // ยิง API จริง
-    try {
-      await Api.getWorkers();
-      clearInterval(interval);
-      // พุ่ง 100% เร็วๆ
-      pct = 100;
-      fill.style.width = '100%';
-      label.textContent = '✅ 100%';
-      // delay สั้นให้เห็น 100% ก่อนเปลี่ยน
-      await new Promise(r => setTimeout(r, 200));
-      badge.className = 'status-badge status-online';
-      badge.innerHTML = '🟢 Online v' + APP_VERSION;
-    } catch (e) {
-      clearInterval(interval);
-      pct = 100;
-      fill.style.width = '100%';
-      label.textContent = '❌ 100%';
-      await new Promise(r => setTimeout(r, 200));
-      badge.className = 'status-badge status-offline';
-      badge.innerHTML = '🔴 Offline v' + APP_VERSION;
     }
   }
 
@@ -220,47 +166,5 @@ const Utils = (() => {
     });
   }
 
-  /**
-   * แสดง Progress bar บนปุ่มสำหรับ action ที่ใช้เวลานาน
-   * @param {HTMLElement} button - element ของปุ่ม
-   * @param {Promise} actionPromise - Promise ของ action ที่กำลังทำงาน
-   * @param {string} initialText - ข้อความเริ่มต้น (เช่น 'กำลังบันทึก...')
-   * @param {string} successText - ข้อความเมื่อสำเร็จ
-   */
-  async function animateProgress(button, actionPromise, initialText, successText) {
-    const originalContent = button.innerHTML;
-    button.disabled = true;
-    button.innerHTML = `
-      <div class="progress-button-content">
-        <span class="progress-label">${initialText}</span>
-        <div class="progress-track"><div class="progress-fill"></div></div>
-      </div>
-    `;
-
-    const label = button.querySelector('.progress-label');
-    const fill = button.querySelector('.progress-fill');
-    let pct = 0;
-
-    const interval = setInterval(() => {
-      if (pct < 60) pct += 2;
-      else if (pct < 90) pct += 0.5;
-      fill.style.width = `${pct}%`;
-      label.textContent = `${initialText} (${Math.floor(pct)}%)`;
-    }, 120);
-
-    try {
-      await actionPromise;
-      clearInterval(interval);
-      fill.style.width = '100%';
-      label.textContent = successText;
-      button.classList.add('progress-success');
-    } catch (error) {
-      clearInterval(interval);
-      button.innerHTML = originalContent;
-      button.disabled = false;
-      throw error; // Re-throw the error to be caught by the caller
-    }
-  }
-
-  return { money, formatDate, toInputDate, toast, skeletonRows, errorBanner, escapeHtml, renderShell, compressImage, animateProgress };
+  return { money, formatDate, toInputDate, toast, skeletonRows, errorBanner, escapeHtml, renderShell, compressImage };
 })();

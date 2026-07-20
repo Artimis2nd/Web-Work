@@ -214,7 +214,7 @@
             <span>
               <span class="font-medium block">${Utils.escapeHtml(w.FullName)}</span>
               <span class="text-xs font-mono" style="color:var(--ink-soft)">฿${Utils.money(w.DailyWage)}/วัน</span>
-              ${isFern ? '<span class="no-markup" style="color:var(--red);font-size:0.7rem;margin-left:0.5rem">(ไม่คิด +20%)</span>' : ''}
+              ${isFern ? '<span class="no-markup" style="color:var(--red);font-size:0.7rem;margin-left:0.5rem">(ยกเว้น +20%)</span>' : ''}
             </span>
             <input type="checkbox" data-checkbox-id="${w.ID}" ${checked}>
           </label>

@@ -15,12 +15,6 @@
   let siteHistory = [];
   let requesterHistory = [];
 
-  // ─── Helper: safe number ─────────────────────────────
-  function safeNum(v) {
-    const n = Number(v);
-    return isNaN(n) ? 0 : Math.max(0, n);
-  }
-
   // ─── Layout ────────────────────────────────────────────────
   function layout() {
     content.innerHTML = `
@@ -80,6 +74,7 @@
             <button type="submit" id="f-submit" class="btn btn-primary w-full sm:w-auto">
               <span id="f-submit-label">บันทึกงาน</span>
             </button>
+            ${editGroupId ? '<button type="button" id="f-cancel-edit" class="btn btn-outline">ยกเลิกแก้ไข</button>' : ''}
           </div>
         </form>
 
@@ -96,11 +91,11 @@
               <span class="font-mono" id="sum-raw">฿0.00</span>
             </div>
             <div class="flex justify-between text-sm">
-              <span style="color:var(--ink-soft)">รวมค่าแรงปกติ+OT (รวม +20%)</span>
+              <span style="color:var(--ink-soft)">รวมค่าแรงปกติ+OT (รวม markup)</span>
               <span class="font-mono" id="sum-normal">฿0.00</span>
             </div>
             <div class="flex justify-between text-sm">
-              <span style="color:var(--ink-soft)">รวมค่าแรงเหมา (ไม่มี +20%)</span>
+              <span style="color:var(--ink-soft)">รวมค่าแรงเหมา (ไม่มี markup)</span>
               <span class="font-mono" id="sum-fixed">฿0.00</span>
             </div>
             <div class="flex justify-between text-base font-semibold" style="color:var(--blueprint-dark)">
@@ -117,6 +112,14 @@
 
     // Image upload handlers
     setupImageUpload();
+
+    // Cancel edit button (dynamic)
+    const cancelBtn = document.getElementById('f-cancel-edit');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', () => {
+        window.location.href = 'daily-log.html';
+      });
+    }
   }
 
   // ─── Image Upload ──────────────────────────────────────────
@@ -214,7 +217,7 @@
             <span>
               <span class="font-medium block">${Utils.escapeHtml(w.FullName)}</span>
               <span class="text-xs font-mono" style="color:var(--ink-soft)">฿${Utils.money(w.DailyWage)}/วัน</span>
-              ${isFern ? '<span class="no-markup" style="color:var(--red);font-size:0.7rem;margin-left:0.5rem">(ไม่คิด +20%)</span>' : ''}
+              ${isFern ? '<span class="no-markup" style="color:var(--red);font-size:0.7rem;margin-left:0.5rem">(ยกเว้น markup)</span>' : ''}
             </span>
             <input type="checkbox" data-checkbox-id="${w.ID}" ${checked}>
           </label>
@@ -276,9 +279,9 @@
   function renderWageOptions(worker, sel) {
     const isFern = worker.FullName.includes(FERN_NAME);
     const wageType = sel ? sel.wageType : 'hourly';
-    const hours = sel ? safeNum(sel.hours) : 0;
-    const otHours = sel ? safeNum(sel.otHours) : 0;
-    const fixedAmount = sel ? safeNum(sel.fixedAmount) : '';
+    const hours = sel ? (sel.hours || 0) : 0;
+    const otHours = sel ? (sel.otHours || 0) : 0;
+    const fixedAmount = sel ? (sel.fixedAmount || '') : '';
 
     const hourlyActive = wageType === 'hourly' ? 'active' : '';
     const fixedActive = wageType === 'fixed' ? 'active' : '';
@@ -286,21 +289,9 @@
     const hourlyDisplay = wageType === 'hourly' ? 'style="display:flex"' : 'style="display:none"';
     const fixedDisplay = wageType === 'fixed' ? 'style="display:block"' : 'style="display:none"';
 
-    const rawWage = calcRawWage(worker, { wageType, hours, otHours, fixedAmount });
+    const hourlyRate = (Number(worker.DailyWage) || 0) / HOURLY_RATE_DIVISOR;
+    const rawWage = calcRawWage(worker, sel || { wageType: 'hourly', hours: 0, otHours: 0, fixedAmount: 0 });
     const totalWage = calcTotalWage(rawWage, isFern);
-
-    // ข้อความแสดงผล สำหรับ fixed จะไม่แสดง markup
-    let resultText;
-    if (wageType === 'fixed') {
-      resultText = `≈ ฿${Utils.money(rawWage)} (เหมาจ่าย ไม่มี +20%)`;
-    } else {
-      resultText = `≈ ฿${Utils.money(rawWage)}`;
-      if (isFern) {
-        resultText += ' <span class="no-markup">(ไม่มี +20%)</span>';
-      } else {
-        resultText += ` → รวม ฿${Utils.money(totalWage)}`;
-      }
-    }
 
     return `
       <div class="wage-type-toggle">
@@ -337,7 +328,9 @@
       </div>
 
       <div class="wage-calc-result" data-result-id="${worker.ID}">
-        ${resultText}
+        ≈ ฿${Utils.money(rawWage)}
+        ${isFern ? '<span class="no-markup">(ไม่มี markup +20%)</span>' : ''}
+        ${!isFern && wageType !== 'fixed' ? '→ รวม ฿' + Utils.money(totalWage) : ''}
       </div>
     `;
   }
@@ -387,9 +380,9 @@
     const otEl = container.querySelector('.wage-ot');
     const fixedEl = container.querySelector('.wage-fixed');
 
-    if (hoursEl) sel.hours = safeNum(parseInt(hoursEl.value));
-    if (otEl) sel.otHours = safeNum(parseInt(otEl.value));
-    if (fixedEl) sel.fixedAmount = safeNum(parseFloat(fixedEl.value));
+    if (hoursEl) sel.hours = parseInt(hoursEl.value) || 0;
+    if (otEl) sel.otHours = parseInt(otEl.value) || 0;
+    if (fixedEl) sel.fixedAmount = parseFloat(fixedEl.value) || 0;
 
     const worker = sel.worker;
     const isFern = worker.FullName.includes(FERN_NAME);
@@ -398,38 +391,30 @@
 
     const resultEl = container.querySelector('.wage-calc-result');
     if (resultEl) {
-      let text;
-      if (sel.wageType === 'fixed') {
-        text = `≈ ฿${Utils.money(rawWage)} (เหมาจ่าย ไม่มี +20%)`;
-      } else {
-        text = `≈ ฿${Utils.money(rawWage)}`;
-        if (isFern) {
-          text += ' <span class="no-markup">(ไม่มี +20%)</span>';
-        } else {
-          text += ` → รวม ฿${Utils.money(totalWage)}`;
-        }
-      }
-      resultEl.innerHTML = text;
+      resultEl.innerHTML = `
+        ≈ ฿${Utils.money(rawWage)}
+        ${isFern ? '<span class="no-markup">(ไม่มี markup +20%)</span>' : ''}
+        ${!isFern && sel.wageType !== 'fixed' ? '→ รวม ฿' + Utils.money(totalWage) : ''}
+      `;
     }
 
     updateSummary();
   }
 
   function calcRawWage(worker, sel) {
-    const dailyWage = safeNum(worker ? worker.DailyWage : 0);
-    if (!sel || sel.wageType === 'fixed') {
-      return safeNum(sel ? sel.fixedAmount : 0);
+    const dailyWage = Number(worker.DailyWage) || 0;
+    if (sel.wageType === 'fixed') {
+      return sel.fixedAmount || 0;
     }
     const hourlyRate = dailyWage / HOURLY_RATE_DIVISOR;
-    const normalPay = hourlyRate * safeNum(sel.hours);
-    const otPay = hourlyRate * 2 * safeNum(sel.otHours);
+    const normalPay = hourlyRate * (sel.hours || 0);
+    const otPay = hourlyRate * 2 * (sel.otHours || 0);
     return normalPay + otPay;
   }
 
   function calcTotalWage(rawWage, isFern) {
-    const rw = safeNum(rawWage);
-    if (isFern) return rw;
-    return rw * MARKUP_RATE;
+    if (isFern) return rawWage;
+    return rawWage * MARKUP_RATE;
   }
 
   // ─── Summary ───────────────────────────────────────────────
@@ -442,30 +427,22 @@
     } else {
       summaryList.innerHTML = entries.map(sel => {
         const w = sel.worker;
-        if (!w) return '';
         const isFern = w.FullName.includes(FERN_NAME);
         const rawWage = calcRawWage(w, sel);
+        const totalWage = calcTotalWage(rawWage, isFern);
         let detail = '';
         if (sel.wageType === 'fixed') {
-          detail = 'เหมา ฿' + Utils.money(safeNum(sel.fixedAmount));
+          detail = 'เหมา ฿' + Utils.money(sel.fixedAmount);
         } else {
           const parts = [];
-          if (safeNum(sel.hours) > 0) parts.push(safeNum(sel.hours) + ' ชม.');
-          if (safeNum(sel.otHours) > 0) parts.push('OT ' + safeNum(sel.otHours) + ' ชม.');
+          if (sel.hours > 0) parts.push(sel.hours + ' ชม.');
+          if (sel.otHours > 0) parts.push('OT ' + sel.otHours + ' ชม.');
           detail = parts.join(' + ') || '0 ชม.';
-        }
-        // fixed: แสดง raw wage (ไม่มี markup)
-        // hourly: แสดง total wage (รวม markup)
-        let displayWage;
-        if (sel.wageType === 'fixed') {
-          displayWage = rawWage;
-        } else {
-          displayWage = calcTotalWage(rawWage, isFern);
         }
         return `
           <div class="flex justify-between">
             <span>${Utils.escapeHtml(w.FullName)} <span style="font-size:0.75rem;color:var(--ink-soft)">(${detail})</span></span>
-            <span class="font-mono">฿${Utils.money(displayWage)}</span>
+            <span class="font-mono">฿${Utils.money(totalWage)}</span>
           </div>
         `;
       }).join('');
@@ -477,14 +454,13 @@
 
     entries.forEach(sel => {
       const w = sel.worker;
-      if (!w) return;
       const isFern = w.FullName.includes(FERN_NAME);
       const rawWage = calcRawWage(w, sel);
       totalRaw += rawWage;
       if (sel.wageType === 'fixed') {
-        totalFixed += rawWage; // fixed = no +20%
+        totalFixed += rawWage; // fixed = no markup
       } else {
-        totalNormal += calcTotalWage(rawWage, isFern); // already with +20%
+        totalNormal += calcTotalWage(rawWage, isFern); // already with markup
       }
     });
 
@@ -535,12 +511,12 @@
       }
 
       editGroupId = groupId;
-      document.getElementById('f-date').value = Utils.toInputDate(data.date);
+      document.getElementById('f-date').value = data.date || Utils.toInputDate();
       document.getElementById('f-site').value = data.site || '';
       document.getElementById('f-detail').value = data.jobDetail || '';
       document.getElementById('f-requester').value = data.requestedBy || '';
 
-      // Load images
+      // Load images — เก็บเป็น { type: 'url', data: url } เพื่อให้รู้ว่าเป็น URL ไม่ใช่ Base64
       if (data.imageUrls && Array.isArray(data.imageUrls)) {
         compressedImages = data.imageUrls.filter(u => u).map(url => ({ type: 'url', data: url }));
         renderImagePreviews();
@@ -554,9 +530,9 @@
             selectedWorkers.set(String(worker.ID), {
               worker,
               wageType: w.wageType || 'hourly',
-              hours: safeNum(w.hours),
-              otHours: safeNum(w.otHours),
-              fixedAmount: safeNum(w.fixedAmount)
+              hours: w.hours || 0,
+              otHours: w.otHours || 0,
+              fixedAmount: w.fixedAmount || 0
             });
           }
         });
@@ -565,23 +541,7 @@
       }
 
       // Change button text
-      const submitBtn = document.getElementById('f-submit');
-      submitBtn.innerHTML = '<span id="f-submit-label">บันทึกการแก้ไข</span>';
-
-      // Add cancel button dynamically
-      const form = document.getElementById('log-form');
-      const btnContainer = form.querySelector('.flex.gap-2');
-      if (btnContainer && !document.getElementById('f-cancel-edit')) {
-        const cancelBtn = document.createElement('button');
-        cancelBtn.type = 'button';
-        cancelBtn.id = 'f-cancel-edit';
-        cancelBtn.className = 'btn btn-outline';
-        cancelBtn.textContent = 'ยกเลิกแก้ไข';
-        cancelBtn.addEventListener('click', () => {
-          window.location.href = 'index.html';
-        });
-        btnContainer.appendChild(cancelBtn);
-      }
+      document.getElementById('f-submit-label').textContent = 'บันทึกการแก้ไข';
 
       Utils.toast('โหลดข้อมูลใบงานเรียบร้อย', 'success');
     } catch (err) {
@@ -602,13 +562,13 @@
 
     // Validate each worker has some wage data
     for (const [id, sel] of selectedWorkers) {
-      if (sel.wageType === 'hourly' && safeNum(sel.hours) === 0 && safeNum(sel.otHours) === 0) {
+      if (sel.wageType === 'hourly' && sel.hours === 0 && sel.otHours === 0) {
         errorBox.appendChild(Utils.errorBanner(
           'กรุณาระบุชั่วโมงทำงานให้ ' + Utils.escapeHtml(sel.worker.FullName)
         ));
         return;
       }
-      if (sel.wageType === 'fixed' && safeNum(sel.fixedAmount) <= 0) {
+      if (sel.wageType === 'fixed' && (!sel.fixedAmount || sel.fixedAmount <= 0)) {
         errorBox.appendChild(Utils.errorBanner(
           'กรุณาระบุจำนวนเงินเหมาจ่ายให้ ' + Utils.escapeHtml(sel.worker.FullName)
         ));
@@ -618,11 +578,11 @@
 
     const workersPayload = Array.from(selectedWorkers.values()).map(sel => ({
       workerName: sel.worker.FullName,
-      dailyWage: safeNum(sel.worker.DailyWage),
+      dailyWage: Number(sel.worker.DailyWage) || 0,
       wageType: sel.wageType,
-      hours: safeNum(sel.hours),
-      otHours: safeNum(sel.otHours),
-      fixedAmount: safeNum(sel.fixedAmount)
+      hours: sel.hours || 0,
+      otHours: sel.otHours || 0,
+      fixedAmount: sel.fixedAmount || 0
     }));
 
     const payload = {
@@ -640,18 +600,29 @@
     }
 
     const submitBtn = document.getElementById('f-submit');
+    submitBtn.disabled = true;
+    document.getElementById('f-submit-label').innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
 
     try {
-      const action = editGroupId ? Api.updateLogGroup(payload) : Api.addLogs(payload);
-      const successMessage = editGroupId ? 'แก้ไขสำเร็จ!' : 'บันทึกสำเร็จ!';
-
-      await Utils.animateProgress(submitBtn, action, 'กำลังบันทึก...', successMessage);
-
+      let result;
       if (editGroupId) {
+        result = await Api.updateLogGroup(payload);
         Utils.toast('แก้ไขใบงานสำเร็จ', 'success');
       } else {
+        result = await Api.addLogs(payload);
         Utils.toast('บันทึกใบงานสำเร็จ', 'success');
       }
+
+      // Reset form
+      document.getElementById('log-form').reset();
+      document.getElementById('f-date').value = Utils.toInputDate();
+      selectedWorkers.clear();
+      compressedImages = [];
+      editGroupId = null;
+      renderImagePreviews();
+      renderWorkerList();
+      updateSummary();
+      document.getElementById('f-submit-label').textContent = 'บันทึกงาน';
 
       // Redirect to dashboard after short delay
       setTimeout(() => {
@@ -660,6 +631,13 @@
     } catch (err) {
       errorBox.innerHTML = '';
       errorBox.appendChild(Utils.errorBanner(err.message));
+    } finally {
+      submitBtn.disabled = false;
+      if (!editGroupId) {
+        document.getElementById('f-submit-label').textContent = 'บันทึกงาน';
+      } else {
+        document.getElementById('f-submit-label').textContent = 'บันทึกการแก้ไข';
+      }
     }
   }
 

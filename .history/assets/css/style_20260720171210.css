@@ -200,36 +200,6 @@ body {
 .btn-danger { background: transparent; color: var(--red); }
 .btn-danger:hover { background: rgba(193,68,60,0.08); }
 
-.btn[disabled] {
-  cursor: not-allowed;
-  filter: grayscale(0.5) brightness(0.95);
-}
-
-.progress-button-content {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-}
-.progress-label {
-  font-size: 0.8rem;
-  transition: color 0.2s ease;
-}
-.progress-track {
-  width: 100%;
-  height: 5px;
-  background: rgba(255,255,255,0.3);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: #fff;
-  border-radius: 3px;
-  transition: width 0.15s linear;
-}
-
 .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.78rem; }
 
 /* ---------- Form fields ---------- */

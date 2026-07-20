@@ -200,36 +200,6 @@ body {
 .btn-danger { background: transparent; color: var(--red); }
 .btn-danger:hover { background: rgba(193,68,60,0.08); }
 
-.btn[disabled] {
-  cursor: not-allowed;
-  filter: grayscale(0.5) brightness(0.95);
-}
-
-.progress-button-content {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-}
-.progress-label {
-  font-size: 0.8rem;
-  transition: color 0.2s ease;
-}
-.progress-track {
-  width: 100%;
-  height: 5px;
-  background: rgba(255,255,255,0.3);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: #fff;
-  border-radius: 3px;
-  transition: width 0.15s linear;
-}
-
 .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.78rem; }
 
 /* ---------- Form fields ---------- */
@@ -489,24 +459,13 @@ textarea.field-input {
 
 /* ---------- Status badge ---------- */
 .status-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.7rem;
-  padding: 5px 10px;
+  font-size: 0.75rem;
+  padding: 4px 10px;
   border-radius: 20px;
   white-space: nowrap;
   font-weight: 600;
   border: 1.5px solid transparent;
   transition: background 0.2s ease, color 0.2s ease;
-}
-.status-badge.status-online,
-.status-badge.status-offline {
-  /* เปลี่ยนกลับเป็น text-only เมื่อได้ผลลัพธ์ */
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
 }
 .status-online {
   background: #e6f7e6;
@@ -517,39 +476,6 @@ textarea.field-input {
   background: #ffe6e6;
   color: #cc0000;
   border-color: #f5b8b8;
-}
-
-.status-progress-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  min-width: 3.5em;
-  text-align: center;
-}
-.status-progress-track {
-  width: 60px;
-  height: 6px;
-  background: #dce2e8;
-  border-radius: 3px;
-  overflow: hidden;
-}
-.status-progress-fill {
-  height: 100%;
-  background: #3D6B99;
-  border-radius: 3px;
-  transition: width 0.15s linear;
-}
-.status-loading {
-  background: #f0f4f8;
-  color: #3D6B99;
-  border-color: #c8d4e0;
-}
-
-/* ---------- Text truncate for job detail ---------- */
-.text-truncate {
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Scrollbar tidy */

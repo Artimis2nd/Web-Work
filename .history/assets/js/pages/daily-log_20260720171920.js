@@ -96,11 +96,11 @@
               <span class="font-mono" id="sum-raw">฿0.00</span>
             </div>
             <div class="flex justify-between text-sm">
-              <span style="color:var(--ink-soft)">รวมค่าแรงปกติ+OT (รวม +20%)</span>
+              <span style="color:var(--ink-soft)">รวมค่าแรงปกติ+OT (รวม markup)</span>
               <span class="font-mono" id="sum-normal">฿0.00</span>
             </div>
             <div class="flex justify-between text-sm">
-              <span style="color:var(--ink-soft)">รวมค่าแรงเหมา (ไม่มี +20%)</span>
+              <span style="color:var(--ink-soft)">รวมค่าแรงเหมา (ไม่มี markup)</span>
               <span class="font-mono" id="sum-fixed">฿0.00</span>
             </div>
             <div class="flex justify-between text-base font-semibold" style="color:var(--blueprint-dark)">
@@ -214,7 +214,7 @@
             <span>
               <span class="font-medium block">${Utils.escapeHtml(w.FullName)}</span>
               <span class="text-xs font-mono" style="color:var(--ink-soft)">฿${Utils.money(w.DailyWage)}/วัน</span>
-              ${isFern ? '<span class="no-markup" style="color:var(--red);font-size:0.7rem;margin-left:0.5rem">(ไม่คิด +20%)</span>' : ''}
+              ${isFern ? '<span class="no-markup" style="color:var(--red);font-size:0.7rem;margin-left:0.5rem">(ยกเว้น markup)</span>' : ''}
             </span>
             <input type="checkbox" data-checkbox-id="${w.ID}" ${checked}>
           </label>
@@ -292,11 +292,11 @@
     // ข้อความแสดงผล สำหรับ fixed จะไม่แสดง markup
     let resultText;
     if (wageType === 'fixed') {
-      resultText = `≈ ฿${Utils.money(rawWage)} (เหมาจ่าย ไม่มี +20%)`;
+      resultText = `≈ ฿${Utils.money(rawWage)} (เหมาจ่าย ไม่มี markup)`;
     } else {
       resultText = `≈ ฿${Utils.money(rawWage)}`;
       if (isFern) {
-        resultText += ' <span class="no-markup">(ไม่มี +20%)</span>';
+        resultText += ' <span class="no-markup">(ไม่มี markup +20%)</span>';
       } else {
         resultText += ` → รวม ฿${Utils.money(totalWage)}`;
       }
@@ -400,11 +400,11 @@
     if (resultEl) {
       let text;
       if (sel.wageType === 'fixed') {
-        text = `≈ ฿${Utils.money(rawWage)} (เหมาจ่าย ไม่มี +20%)`;
+        text = `≈ ฿${Utils.money(rawWage)} (เหมาจ่าย ไม่มี markup)`;
       } else {
         text = `≈ ฿${Utils.money(rawWage)}`;
         if (isFern) {
-          text += ' <span class="no-markup">(ไม่มี +20%)</span>';
+          text += ' <span class="no-markup">(ไม่มี markup +20%)</span>';
         } else {
           text += ` → รวม ฿${Utils.money(totalWage)}`;
         }
@@ -482,9 +482,9 @@
       const rawWage = calcRawWage(w, sel);
       totalRaw += rawWage;
       if (sel.wageType === 'fixed') {
-        totalFixed += rawWage; // fixed = no +20%
+        totalFixed += rawWage; // fixed = no markup
       } else {
-        totalNormal += calcTotalWage(rawWage, isFern); // already with +20%
+        totalNormal += calcTotalWage(rawWage, isFern); // already with markup
       }
     });
 

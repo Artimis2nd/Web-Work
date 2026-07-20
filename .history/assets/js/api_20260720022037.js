@@ -48,11 +48,6 @@ const Api = (() => {
     addLogs: (payload) => call('addLogs', payload),
     deleteLogGroup: (payload) => call('deleteLogGroup', payload),
     getReport: (payload) => call('getReport', payload),
-    getPivotReport: (payload) => call('getPivotReport', payload),
-    // === ฟังก์ชันใหม่สำหรับระบบใบงาน v2 ===
-    getLogGroup: (payload) => call('getLogGroup', payload),
-    updateLogGroup: (payload) => call('updateLogGroup', payload),
-    getSiteHistory: () => call('getSiteHistory'),
-    getRequesterHistory: () => call('getRequesterHistory')
+    getPivotReport: (payload) => call('getPivotReport', payload)
   };
 })();

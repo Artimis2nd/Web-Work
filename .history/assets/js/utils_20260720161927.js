@@ -13,7 +13,7 @@ const Utils = (() => {
     if (!d) return '-';
     const date = new Date(d);
     if (isNaN(date.getTime())) return String(d);
-    return date.toLocaleDateString('th-TH', { year: '2-digit', month: '2-digit', day: 'numeric' });
+    return date.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
   function toInputDate(d) {
@@ -220,47 +220,5 @@ const Utils = (() => {
     });
   }
 
-  /**
-   * แสดง Progress bar บนปุ่มสำหรับ action ที่ใช้เวลานาน
-   * @param {HTMLElement} button - element ของปุ่ม
-   * @param {Promise} actionPromise - Promise ของ action ที่กำลังทำงาน
-   * @param {string} initialText - ข้อความเริ่มต้น (เช่น 'กำลังบันทึก...')
-   * @param {string} successText - ข้อความเมื่อสำเร็จ
-   */
-  async function animateProgress(button, actionPromise, initialText, successText) {
-    const originalContent = button.innerHTML;
-    button.disabled = true;
-    button.innerHTML = `
-      <div class="progress-button-content">
-        <span class="progress-label">${initialText}</span>
-        <div class="progress-track"><div class="progress-fill"></div></div>
-      </div>
-    `;
-
-    const label = button.querySelector('.progress-label');
-    const fill = button.querySelector('.progress-fill');
-    let pct = 0;
-
-    const interval = setInterval(() => {
-      if (pct < 60) pct += 2;
-      else if (pct < 90) pct += 0.5;
-      fill.style.width = `${pct}%`;
-      label.textContent = `${initialText} (${Math.floor(pct)}%)`;
-    }, 120);
-
-    try {
-      await actionPromise;
-      clearInterval(interval);
-      fill.style.width = '100%';
-      label.textContent = successText;
-      button.classList.add('progress-success');
-    } catch (error) {
-      clearInterval(interval);
-      button.innerHTML = originalContent;
-      button.disabled = false;
-      throw error; // Re-throw the error to be caught by the caller
-    }
-  }
-
-  return { money, formatDate, toInputDate, toast, skeletonRows, errorBanner, escapeHtml, renderShell, compressImage, animateProgress };
+  return { money, formatDate, toInputDate, toast, skeletonRows, errorBanner, escapeHtml, renderShell, compressImage };
 })();
