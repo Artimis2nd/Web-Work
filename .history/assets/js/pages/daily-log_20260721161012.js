@@ -680,13 +680,8 @@
       fixedAmount: safeNum(sel.fixedAmount)
     }));
 
-    // Convert date from DD/MM/YYYY to YYYY-MM-DD for API
-    const dateInput = document.getElementById('f-date').value;
-    const dateMatch = dateInput.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    const apiDate = dateMatch ? `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}` : dateInput;
-
     const payload = {
-      date: apiDate,
+      date: document.getElementById('f-date').value,
       site: document.getElementById('f-site').value.trim(),
       jobDetail: document.getElementById('f-detail').value.trim(),
       requestedBy: document.getElementById('f-requester').value.trim(),

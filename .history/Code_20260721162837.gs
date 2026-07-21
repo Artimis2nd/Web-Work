@@ -420,7 +420,7 @@ function getLogGroup(payload) {
   var first = groupRows[0];
   var imageUrls = getImageUrlsByGroupId(groupId);
   var workers = groupRows.map(function(row) {
-    return { workerName: row.WorkerName, dailyWage: Number(row.DailyWage) || 0, wageType: row.WageType || 'hourly', hours: Number(row.Hours) || 0, otHours: Number(row.OTHours) || 0, fixedAmount: Number(row.FixedAmount) || 0, RawWage: Number(row.RawWage) || 0, TotalWithMarkup: Number(row.TotalWithMarkup) || 0 };
+    return { workerName: row.WorkerName, dailyWage: Number(row.DailyWage) || 0, wageType: row.WageType || 'hourly', hours: Number(row.Hours) || 0, otHours: Number(row.OTHours) || 0, fixedAmount: Number(row.FixedAmount) || 0 };
   });
   return { groupId: groupId, date: first.Date, site: first.Site, jobDetail: first.JobDetail, requestedBy: first.RequestedBy, imageUrls: imageUrls, workers: workers };
 }

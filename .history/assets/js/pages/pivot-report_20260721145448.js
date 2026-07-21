@@ -45,8 +45,6 @@
       element: document.getElementById('date-range'),
       singleMode: false,
       format: 'DD/MM/YYYY',
-      lang: 'th-TH',
-      autoApply: true,
     });
 
     document.getElementById('run-report-btn').addEventListener('click', () => {
@@ -58,37 +56,15 @@
     });
   }
 
-  function parseDaterangeValue(value) {
-    if (!value) return { startDate: null, endDate: null };
-    const parts = value.split(' - ').map(s => s.trim());
-    if (parts.length !== 2) return { startDate: null, endDate: null };
-
-    const parseDDMMYYYY = (str) => {
-      const m = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      if (!m) return null;
-      const d = parseInt(m[1], 10);
-      const mo = parseInt(m[2], 10) - 1;
-      const y = parseInt(m[3], 10);
-      return `${y}-${String(mo + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    };
-
-    return {
-      startDate: parseDDMMYYYY(parts[0]),
-      endDate: parseDDMMYYYY(parts[1])
-    };
-  }
-
   async function load() {
-    const daterangeInput = document.getElementById('date-range');
-    const { startDate: startDateStr, endDate: endDateStr } = parseDaterangeValue(daterangeInput ? daterangeInput.value : '');
-
-    if (!startDateStr || !endDateStr) {
-      Utils.toast('กรุณาเลือกช่วงวันที่ให้ครบ', 'error');
-      return;
+    if (!picker.getStartDate() || !picker.getEndDate()) {
+        return; // Don't load if no date is selected
     }
 
+    const startDate = picker.getStartDate();
+    const endDate = picker.getEndDate();
     const reportTitle = document.getElementById('report-title');
-    reportTitle.textContent = `ค่าแรงรายวันประจำ วันที่ ${startDateStr.split('-').reverse().join('/')} - วันที่ ${endDateStr.split('-').reverse().join('/')}`;
+    reportTitle.textContent = `ค่าแรงรายวันประจำ วันที่ ${startDate.format('DD/MM/YYYY')} - วันที่ ${endDate.format('DD/MM/YYYY')}`;
 
 
     const tableHead = document.getElementById('table-head');
@@ -101,20 +77,17 @@
     printBtn.hidden = true; // Hide print button while loading
 
     const payload = {
-      startDate: startDateStr,
-      endDate: endDateStr
+      startDate: startDate.toJSDate().toISOString().split('T')[0],
+      endDate: endDate.toJSDate().toISOString().split('T')[0]
     };
 
     try {
       const data = await Api.getLogs(payload);
       let logs = data.logs || [];
 
-      // Sort logs by date descending. Handle cases where date might be a string or an object.
+      // Sort logs by date descending, ensuring date is treated as a string
       logs.sort((a, b) => {
-        // Convert date to a consistent YYYY-MM-DD string format for reliable sorting
-        const dateA = a.Date ? new Date(a.Date).toISOString().split('T')[0] : '';
-        const dateB = b.Date ? new Date(b.Date).toISOString().split('T')[0] : '';
-        return dateB.localeCompare(dateA);
+        return String(b.Date || '').localeCompare(String(a.Date || ''));
       });
 
       if (!logs.length) {

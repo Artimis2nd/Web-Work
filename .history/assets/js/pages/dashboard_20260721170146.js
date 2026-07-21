@@ -15,7 +15,7 @@
       </div>
       <div class="ledger-card p-4">
         <div class="skeleton" style="height:18px;width:200px;margin-bottom:16px"></div>
-        <table class="tape-table"><tbody>${Utils.skeletonRows(6, 8)}</tbody></table>
+        <table class="tape-table"><tbody>${Utils.skeletonRows(6, 6)}</tbody></table>
       </div>
     `;
   }
@@ -83,7 +83,7 @@
             <tbody id="log-rows">
               ${data.recentGroups && data.recentGroups.length
                 ? data.recentGroups.map(renderGroupRow).join('')
-                : `<tr><td colspan="8" class="text-center py-6" style="color:var(--ink-soft)">ยังไม่มีบันทึกงาน — เริ่มบันทึกได้ที่ปุ่มด้านบน</td></tr>`}
+                : `<tr><td colspan="6" class="text-center py-6" style="color:var(--ink-soft)">ยังไม่มีบันทึกงาน — เริ่มบันทึกได้ที่ปุ่มด้านบน</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -116,30 +116,6 @@
         }
       });
     });
-
-    // Select All checkbox
-    const selectAllCheckbox = document.getElementById('select-all-checkbox');
-    if (selectAllCheckbox) {
-      selectAllCheckbox.addEventListener('change', () => {
-        const checkboxes = document.querySelectorAll('.group-checkbox');
-        checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
-      });
-    }
-
-    // View selected button
-    const viewBtn = document.getElementById('view-selected-btn');
-    if (viewBtn) {
-      viewBtn.addEventListener('click', () => {
-        const checked = document.querySelectorAll('.group-checkbox:checked');
-        const ids = Array.from(checked).map(cb => cb.value);
-        if (ids.length === 0) {
-          Utils.toast('กรุณาเลือกรายการใบงานก่อน', 'error');
-          return;
-        }
-        sessionStorage.setItem('printGroups', JSON.stringify(ids));
-        window.open('summary-print.html', '_blank');
-      });
-    }
   }
 
   async function load() {

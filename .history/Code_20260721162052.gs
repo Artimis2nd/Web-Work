@@ -300,30 +300,17 @@ function getDashboard() {
 }
 
 // ============================================================
-// DATE HELPER — แปลง Date object → YYYY-MM-DD string (local time)
-// ============================================================
-function toLocalDateStr(d) {
-  if (!d) return '';
-  var date = new Date(d);
-  if (isNaN(date.getTime())) return '';
-  var y = date.getFullYear();
-  var m = date.getMonth() + 1;
-  var day = date.getDate();
-  return y + '-' + (m < 10 ? '0' + m : m) + '-' + (day < 10 ? '0' + day : day);
-}
-
-// ============================================================
 // LOGS
 // ============================================================
 function getLogs(payload) {
   var logs = getData(getSheet(SHEET_LOGS));
 
-  // Filter by date range if provided — ใช้ toLocalDateStr เพื่อหลีกเลี่ยงปัญหา timezone offset
+  // Filter by date range if provided
   if (payload.startDate) {
-    logs = logs.filter(function(row) { return row.Date && toLocalDateStr(row.Date) >= payload.startDate; });
+    logs = logs.filter(function(row) { return row.Date && new Date(row.Date) >= new Date(payload.startDate); });
   }
   if (payload.endDate) {
-    logs = logs.filter(function(row) { return row.Date && toLocalDateStr(row.Date) <= payload.endDate; });
+    logs = logs.filter(function(row) { return row.Date && new Date(row.Date) <= new Date(payload.endDate); });
   }
 
   // Group rows by GroupID
@@ -347,8 +334,8 @@ function getLogs(payload) {
 
   var groupList = Object.keys(groups).map(function(gid) { return groups[gid]; });
   groupList.sort(function(a, b) {
-    var dateA = a.Date ? toLocalDateStr(a.Date) : '';
-    var dateB = b.Date ? toLocalDateStr(b.Date) : '';
+    var dateA = a.Date ? new Date(a.Date).toISOString().split('T')[0] : '';
+    var dateB = b.Date ? new Date(b.Date).toISOString().split('T')[0] : '';
     return dateB.localeCompare(dateA);
   });
 
@@ -420,7 +407,7 @@ function getLogGroup(payload) {
   var first = groupRows[0];
   var imageUrls = getImageUrlsByGroupId(groupId);
   var workers = groupRows.map(function(row) {
-    return { workerName: row.WorkerName, dailyWage: Number(row.DailyWage) || 0, wageType: row.WageType || 'hourly', hours: Number(row.Hours) || 0, otHours: Number(row.OTHours) || 0, fixedAmount: Number(row.FixedAmount) || 0, RawWage: Number(row.RawWage) || 0, TotalWithMarkup: Number(row.TotalWithMarkup) || 0 };
+    return { workerName: row.WorkerName, dailyWage: Number(row.DailyWage) || 0, wageType: row.WageType || 'hourly', hours: Number(row.Hours) || 0, otHours: Number(row.OTHours) || 0, fixedAmount: Number(row.FixedAmount) || 0 };
   });
   return { groupId: groupId, date: first.Date, site: first.Site, jobDetail: first.JobDetail, requestedBy: first.RequestedBy, imageUrls: imageUrls, workers: workers };
 }
@@ -560,8 +547,8 @@ function getRequesterHistory() {
 function getReport(payload) {
   var logs = getData(getSheet(SHEET_LOGS));
   if (payload.workerName) logs = logs.filter(function(row) { return row.WorkerName === payload.workerName; });
-  if (payload.startDate) logs = logs.filter(function(row) { return row.Date && toLocalDateStr(row.Date) >= payload.startDate; });
-  if (payload.endDate) logs = logs.filter(function(row) { return row.Date && toLocalDateStr(row.Date) <= payload.endDate; });
+  if (payload.startDate) logs = logs.filter(function(row) { return row.Date && new Date(row.Date) >= new Date(payload.startDate); });
+  if (payload.endDate) logs = logs.filter(function(row) { return row.Date && new Date(row.Date) <= new Date(payload.endDate); });
   var totalRaw = 0, totalMarkup = 0;
   var logList = logs.map(function(row) {
     var raw = Number(row.RawWage) || 0, markup = Number(row.TotalWithMarkup) || 0;
@@ -573,8 +560,8 @@ function getReport(payload) {
 
 function getPivotReport(payload) {
   var logs = getData(getSheet(SHEET_LOGS));
-  if (payload.startDate) logs = logs.filter(function(row) { return row.Date && toLocalDateStr(row.Date) >= payload.startDate; });
-  if (payload.endDate) logs = logs.filter(function(row) { return row.Date && toLocalDateStr(row.Date) <= payload.endDate; });
+  if (payload.startDate) logs = logs.filter(function(row) { return String(row.Date) >= payload.startDate; });
+  if (payload.endDate) logs = logs.filter(function(row) { return String(row.Date) <= payload.endDate; });
   var groupBy = payload.groupBy === 'site' ? 'Site' : 'Date';
   var groups = {};
   logs.forEach(function(row) {

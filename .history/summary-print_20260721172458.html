@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>พิมพ์สรุปค่าแรง</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  @page { size: A4 portrait; margin: 15mm; }
+
+  body {
+    font-family: 'Sarabun', 'Sarabun PSK', 'TH Sarabun New', Tahoma, sans-serif;
+    background: white;
+    color: #1a1a2e;
+    padding: 0;
+    margin: 0;
+  }
+
+  .print-wrapper {
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 15mm 15mm;
+  }
+
+  /* ===== การ์ดสรุปแต่ละใบ ขึ้นหน้า A4 ใหม่ทุกใบ ===== */
+  .print-card {
+    page-break-inside: avoid;
+    page-break-before: always;
+    margin-bottom: 5mm;
+    border: 1.5px solid #333;
+    padding: 8mm 8mm 6mm;
+    border-radius: 3px;
+    min-height: 80mm;
+  }
+
+  .print-card:first-child {
+    page-break-before: avoid;
+  }
+
+  .print-card.has-break {
+    page-break-after: always;
+  }
+
+  .print-card .card-header {
+    margin-bottom: 6mm;
+    padding-bottom: 3mm;
+    border-bottom: 2px solid #1a1a2e;
+  }
+
+  .print-card .card-header .row {
+    font-weight: 600;
+    font-size: 12pt;
+    line-height: 1.8;
+    margin-bottom: 1mm;
+  }
+
+  .print-card .card-header .row span.label {
+    display: inline-block;
+    min-width: 90px;
+  }
+
+  .print-card .card-header .row .sep {
+    display: inline-block;
+    width: 20px;
+  }
+
+  .print-card .card-header .row .detail-text {
+    font-weight: 400;
+    white-space: pre-wrap;
+  }
+
+  .print-card .card-workers {
+    font-size: 11pt;
+    line-height: 1.7;
+    margin-bottom: 5mm;
+  }
+
+  .print-card .card-workers .worker-item {
+    padding: 1px 0;
+  }
+
+  .print-card .card-footer {
+    border-top: 2px solid #1a1a2e;
+    padding-top: 3mm;
+    font-size: 13pt;
+    font-weight: 700;
+    color: #dc2626;
+    text-align: right;
+  }
+
+  .print-card .card-footer .total-label {
+    color: #1a1a2e;
+  }
+
+  /* ===== ส่วนรูปภาพ ขึ้นหน้า A4 ใหม่แยกจากการ์ด ===== */
+  .image-section {
+    page-break-before: always;
+    margin-top: 0;
+  }
+
+  .image-page {
+    page-break-inside: avoid;
+    page-break-before: always;
+    margin-bottom: 5mm;
+  }
+
+  .image-page:first-child {
+    page-break-before: avoid;
+  }
+
+  .image-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6mm;
+  }
+
+  .image-grid .img-cell {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    text-align: center;
+    margin-bottom: 4mm;
+  }
+
+  .image-grid .img-cell img {
+    width: 100%;
+    height: auto;
+    max-height: 160mm;
+    object-fit: contain;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+  }
+
+  .image-grid .img-cell .img-date {
+    font-size: 9pt;
+    color: #555;
+    margin-top: 2mm;
+  }
+
+  .no-break {
+    page-break-inside: avoid;
+  }
+
+  .print-header {
+    text-align: center;
+    font-size: 18pt;
+    font-weight: 700;
+    margin-bottom: 10mm;
+    padding-bottom: 4mm;
+    border-bottom: 2px solid #1a1a2e;
+  }
+
+  @media screen {
+    body {
+      background: #f0f0f0;
+    }
+    .print-wrapper {
+      background: white;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      min-height: 297mm;
+    }
+    /* บนหน้าจอไม่ต้องขึ้นหน้าใหม่ */
+    .print-card { page-break-before: auto; page-break-after: auto; margin-bottom: 10mm; }
+    .print-card.has-break { page-break-after: auto; }
+    .image-section { page-break-before: auto; }
+    .image-page { page-break-before: auto; }
+  }
+
+  @media print {
+    .no-print { display: none; }
+    body { background: white; }
+    .print-wrapper { padding: 0; max-width: 100%; box-shadow: none; }
+  }
+
+  .btn-print {
+    display: inline-block;
+    padding: 8px 24px;
+    background: #1a1a2e;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  .btn-print:hover { background: #16213e; }
+</style>
+</head>
+<body>
+<div class="no-print" style="text-align:center;padding:10px;background:#eef1f3;">
+  <button class="btn-print" onclick="window.print()">🖨️ พิมพ์เอกสาร</button>
+  <button class="btn-print" style="background:#6b7280;" onclick="window.close()">✕ ปิด</button>
+</div>
+<div id="print-content" class="print-wrapper">
+  <div class="print-header">สรุปค่าแรงรายวัน</div>
+  <div id="cards-container"></div>
+  <div id="images-container" class="image-section"></div>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/pages/summary-print.js"></script>
+</body>
+</html>

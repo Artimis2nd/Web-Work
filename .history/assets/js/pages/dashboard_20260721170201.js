@@ -15,7 +15,7 @@
       </div>
       <div class="ledger-card p-4">
         <div class="skeleton" style="height:18px;width:200px;margin-bottom:16px"></div>
-        <table class="tape-table"><tbody>${Utils.skeletonRows(6, 8)}</tbody></table>
+        <table class="tape-table"><tbody>${Utils.skeletonRows(6, 6)}</tbody></table>
       </div>
     `;
   }
@@ -83,7 +83,7 @@
             <tbody id="log-rows">
               ${data.recentGroups && data.recentGroups.length
                 ? data.recentGroups.map(renderGroupRow).join('')
-                : `<tr><td colspan="8" class="text-center py-6" style="color:var(--ink-soft)">ยังไม่มีบันทึกงาน — เริ่มบันทึกได้ที่ปุ่มด้านบน</td></tr>`}
+                : `<tr><td colspan="6" class="text-center py-6" style="color:var(--ink-soft)">ยังไม่มีบันทึกงาน — เริ่มบันทึกได้ที่ปุ่มด้านบน</td></tr>`}
             </tbody>
           </table>
         </div>
