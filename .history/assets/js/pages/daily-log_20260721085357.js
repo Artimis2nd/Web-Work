@@ -612,7 +612,7 @@
       loadingAnimationInterval = null;
     }
 
-    const baseText = 'กำลังดึงรายการ รอสักครู่';
+    const baseText = 'กำลังดึงข้อมูลใบงาน';
     p.textContent = baseText; // Reset text
 
     if (start) {

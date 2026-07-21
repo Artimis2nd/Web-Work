@@ -612,7 +612,7 @@
       loadingAnimationInterval = null;
     }
 
-    const baseText = 'กำลังดึงรายการ รอสักครู่';
+    const baseText = 'กำลังดึงข้อมูลใบงาน';
     p.textContent = baseText; // Reset text
 
     if (start) {
@@ -711,6 +711,7 @@
     if (editParam) {
       // In edit mode, show the full-page loader immediately
       document.getElementById('loading-overlay').style.display = 'flex';
+      // Hide the smaller worker loading text as it's redundant
       manageLoadingAnimation(true); // Start animation
       document.getElementById('worker-loading').style.display = 'none';
     }

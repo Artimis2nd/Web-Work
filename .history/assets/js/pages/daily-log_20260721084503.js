@@ -13,7 +13,6 @@
   let compressedImages = [];
   let editGroupId = null; // ถ้ามีค่า = กำลังแก้ไขใบงานนี้
   let siteHistory = [];
-  let loadingAnimationInterval = null;
   let requesterHistory = [];
 
   // ─── Helper: safe number ─────────────────────────────
@@ -597,33 +596,6 @@
     }
   }
 
-  // ─── Animation ─────────────────────────────────────────────
-  /**
-   * Manages the loading text animation (e.g., "Loading...")
-   * @param {boolean} start - True to start the animation, false to stop.
-   */
-  function manageLoadingAnimation(start = true) {
-    const p = document.querySelector('#loading-overlay p');
-    if (!p) return;
-
-    // Clear any existing animation interval
-    if (loadingAnimationInterval) {
-      clearInterval(loadingAnimationInterval);
-      loadingAnimationInterval = null;
-    }
-
-    const baseText = 'กำลังดึงรายการ รอสักครู่';
-    p.textContent = baseText; // Reset text
-
-    if (start) {
-      let dots = 0;
-      loadingAnimationInterval = setInterval(() => {
-        dots = (dots + 1) % 4; // Cycle 0, 1, 2, 3
-        p.textContent = baseText + '.'.repeat(dots);
-      }, 400); // Update every 400ms
-    }
-  }
-
   // ─── Submit ────────────────────────────────────────────────
   async function onSubmit(e) {
     e.preventDefault();
@@ -699,31 +671,23 @@
   }
 
   // ─── Init ──────────────────────────────────────────────────
-  async function initializePage() {
-    // 1. Render the basic layout
-    layout();
-    updateSummary();
+  layout();
+  updateSummary();
+  loadWorkers();
+  loadHistory();
 
-    // 2. Check for edit mode
-    const urlParams = new URLSearchParams(window.location.search);
-    const editParam = urlParams.get('edit');
-
-    if (editParam) {
-      // In edit mode, show the full-page loader immediately
-      document.getElementById('loading-overlay').style.display = 'flex';
-      manageLoadingAnimation(true); // Start animation
-      document.getElementById('worker-loading').style.display = 'none';
-    }
-
-    // 3. Load initial data (workers and history)
-    // This will run in parallel
-    await Promise.all([loadWorkers(), loadHistory()]);
-
-    // 4. If in edit mode, now load the group data
-    if (editParam) {
-      await loadEditGroup(editParam); // The finally block in this function will hide the overlay
-    }
+  // Check for edit mode
+  const urlParams = new URLSearchParams(window.location.search);
+  const editParam = urlParams.get('edit');
+  if (editParam) {
+    // Wait for workers to load first, then load edit data
+    const checkWorkers = setInterval(() => {
+      if (allWorkers.length > 0) {
+        clearInterval(checkWorkers);
+        loadEditGroup(editParam);
+      }
+    }, 100);
+    // Timeout after 10 seconds
+    setTimeout(() => clearInterval(checkWorkers), 10000);
   }
-
-  initializePage();
 })();
