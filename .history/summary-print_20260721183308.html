@@ -118,7 +118,7 @@
     break-inside: avoid;
     page-break-inside: avoid;
     text-align: center;
-    height: 42.5mm; /* Finetuned to fill more of the A4 page height */
+    height: 41mm; /* Adjusted from 43mm to fit 6 rows on A4 */
     display: flex;
     flex-direction: column;
   }
@@ -178,7 +178,7 @@
 </head>
 <body>
 <div class="no-print" style="text-align:center;padding:10px;background:#eef1f3;">
-  <button id="print-btn" class="btn-print" disabled onclick="window.print()">🖨️ พิมพ์เอกสาร</button>
+  <button id="print-btn" class="btn-print" disabled>🖨️ พิมพ์เอกสาร</button>
   <button class="btn-print" style="background:#6b7280;" onclick="window.close()">✕ ปิด</button>
 </div>
 <div id="print-content" class="print-wrapper">
