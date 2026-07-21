@@ -26,11 +26,11 @@
         </form>
       </div>
 
-      <div class="ledger-card p-4 mb-6 text-center">
-        <div class="kpi-label">ยอดรวมของช่วงวันที่ที่เลือก</div>
-        <div id="report-grand-total" class="font-mono font-bold text-2xl mt-1" style="color:var(--blueprint-dark)">
+      <div class="text-right mb-4">
+        <span class="font-semibold text-sm" style="color:var(--ink-soft)">ยอดรวมของช่วงวันที่ที่เลือก:</span>
+        <span id="report-grand-total" class="font-mono font-bold text-xl ml-2" style="color:var(--blueprint-dark)">
           -
-        </div>
+        </span>
       </div>
 
       <div class="ledger-card p-4">

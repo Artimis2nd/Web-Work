@@ -26,13 +26,6 @@
         </form>
       </div>
 
-      <div class="ledger-card p-4 mb-6 text-center">
-        <div class="kpi-label">ยอดรวมของช่วงวันที่ที่เลือก</div>
-        <div id="report-grand-total" class="font-mono font-bold text-2xl mt-1" style="color:var(--blueprint-dark)">
-          -
-        </div>
-      </div>
-
       <div class="ledger-card p-4">
         <div class="overflow-x-auto">
           <table class="tape-table">
@@ -171,15 +164,10 @@
 
     try {
       const data = await Api.getReport(payload);
-      const totalDisplay = document.getElementById('report-grand-total');
-
       if (data.logs.length > 0) {
         const processedData = processReportData(data.logs);
-        const grandTotal = processedData.reduce((sum, worker) => sum + worker.totalRawWage + worker.totalMarkup, 0);
-        totalDisplay.textContent = '฿' + Utils.money(grandTotal);
         tbody.innerHTML = processedData.map(renderRow).join('');
       } else {
-        totalDisplay.textContent = '฿0.00';
         tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6" style="color:var(--ink-soft)">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>`;
       }
     } catch (err) {

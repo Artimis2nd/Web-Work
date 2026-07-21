@@ -26,13 +26,6 @@
         </form>
       </div>
 
-      <div class="ledger-card p-4 mb-6 text-center">
-        <div class="kpi-label">ยอดรวมของช่วงวันที่ที่เลือก</div>
-        <div id="report-grand-total" class="font-mono font-bold text-2xl mt-1" style="color:var(--blueprint-dark)">
-          -
-        </div>
-      </div>
-
       <div class="ledger-card p-4">
         <div class="overflow-x-auto">
           <table class="tape-table">
@@ -112,15 +105,11 @@
         } else {
           data.partialHours += log.Hours;
         }
+        data.otHours += log.OTHours;
 
-        if (log.OTHours > 0) {
-          data.otHours += log.OTHours;
-          // คำนวณค่าแรง OT จาก RawWage เพื่อความแม่นยำและหลีกเลี่ยงการหารด้วยศูนย์
-          const totalHoursEquivalent = log.Hours + (log.OTHours * 2);
-          if (totalHoursEquivalent > 0) {
-            data.totalOtWage += (log.RawWage / totalHoursEquivalent) * (log.OTHours * 2);
-          }
-        }
+        // Calculate OT wage portion
+        const hourlyRate = log.DailyWage / 8;
+        data.totalOtWage += hourlyRate * 2 * log.OTHours;
       }
     }
 
@@ -171,15 +160,10 @@
 
     try {
       const data = await Api.getReport(payload);
-      const totalDisplay = document.getElementById('report-grand-total');
-
       if (data.logs.length > 0) {
         const processedData = processReportData(data.logs);
-        const grandTotal = processedData.reduce((sum, worker) => sum + worker.totalRawWage + worker.totalMarkup, 0);
-        totalDisplay.textContent = '฿' + Utils.money(grandTotal);
         tbody.innerHTML = processedData.map(renderRow).join('');
       } else {
-        totalDisplay.textContent = '฿0.00';
         tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6" style="color:var(--ink-soft)">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>`;
       }
     } catch (err) {
