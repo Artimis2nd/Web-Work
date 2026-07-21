@@ -32,14 +32,14 @@
   function renderGroupRow(group) {
     return `
       <tr>
-        <td class="text-center">${Utils.formatDate(group.date)}</td>
-        <td class="text-center text-truncate" title="${Utils.escapeHtml(group.site || '-')}">${Utils.escapeHtml(group.site || '-')}</td>
+        <td>${Utils.formatDate(group.date)}</td>
+        <td>${Utils.escapeHtml(group.site || '-')}</td>
         <td class="text-truncate" title="${Utils.escapeHtml(group.jobDetail || '-')}">${Utils.escapeHtml(group.jobDetail || '-')}</td>
-        <td class="font-mono text-center">${group.workerCount || 0} คน</td>
-        <td class="font-mono font-semibold text-center" style="color:var(--blueprint-dark)">฿${Utils.money(group.totalNormal + group.totalFixed)}</td>
-        <td class="text-center">${Utils.escapeHtml(group.requestedBy || '-')}</td>
+        <td class="font-mono">${group.workerCount || 0} คน</td>
+        <td class="font-mono font-semibold" style="color:var(--blueprint-dark)">฿${Utils.money(group.totalNormal + group.totalFixed)}</td>
+        <td>${Utils.escapeHtml(group.requestedBy || '-')}</td>
         <td>
-          <div class="flex gap-1 justify-center">
+          <div class="flex gap-1">
             <button class="btn btn-outline btn-sm" data-edit-group="${Utils.escapeHtml(group.groupId)}">&#9998;</button>
             <button class="btn btn-danger btn-sm" data-delete-group="${Utils.escapeHtml(group.groupId)}">&#128465;</button>
           </div>

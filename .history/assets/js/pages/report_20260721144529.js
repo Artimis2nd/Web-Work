@@ -184,11 +184,11 @@
       <tr>
         <td class="text-center">${Utils.escapeHtml(workerName)}</td>
         <td class="text-center">${workSummary}</td>
-        <td class="font-mono text-center">${formatConditionalMoney(totalRawWage)}</td>
-        <td class="font-mono text-center" style="color:var(--green)">${formatConditionalMoney(totalMarkup)}</td>
-        <td class="font-mono text-center">${formatConditionalMoney(totalFixedWage)}</td>
-        <td class="font-mono text-center">${formatConditionalMoney(totalOtWage)}</td>
-        <td class="font-mono font-semibold text-center" style="color:var(--blueprint-dark)">${formatConditionalMoney(grandTotal)}</td>
+        <td class="font-mono text-center">฿${formatConditionalMoney(totalRawWage)}</td>
+        <td class="font-mono text-center" style="color:var(--green)">฿${formatConditionalMoney(totalMarkup)}</td>
+        <td class="font-mono text-center">฿${formatConditionalMoney(totalFixedWage)}</td>
+        <td class="font-mono text-center">฿${formatConditionalMoney(totalOtWage)}</td>
+        <td class="font-mono font-semibold text-center" style="color:var(--blueprint-dark)">฿${formatConditionalMoney(grandTotal)}</td>
       </tr>
     `;
   }

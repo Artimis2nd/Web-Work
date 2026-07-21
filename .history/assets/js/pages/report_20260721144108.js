@@ -52,9 +52,6 @@
       </div>
 
       <div class="ledger-card p-4">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-display text-lg font-semibold">ตารางสรุปค่าแรง</h2>
-        </div>
         <div class="overflow-x-auto">
           <table class="tape-table">
             <thead>
@@ -172,23 +169,15 @@
 
     const grandTotal = totalRawWage + totalMarkup;
 
-    // ฟังก์ชันสำหรับจัดรูปแบบตัวเลขตามเงื่อนไข
-    const formatConditionalMoney = (num) => {
-      if (Number.isInteger(num)) {
-        return num.toLocaleString('en-US');
-      }
-      return Utils.money(num);
-    };
-
     return `
       <tr>
         <td class="text-center">${Utils.escapeHtml(workerName)}</td>
         <td class="text-center">${workSummary}</td>
-        <td class="font-mono text-center">${formatConditionalMoney(totalRawWage)}</td>
-        <td class="font-mono text-center" style="color:var(--green)">${formatConditionalMoney(totalMarkup)}</td>
-        <td class="font-mono text-center">${formatConditionalMoney(totalFixedWage)}</td>
-        <td class="font-mono text-center">${formatConditionalMoney(totalOtWage)}</td>
-        <td class="font-mono font-semibold text-center" style="color:var(--blueprint-dark)">${formatConditionalMoney(grandTotal)}</td>
+        <td class="font-mono text-center">฿${Utils.money(totalRawWage)}</td>
+        <td class="font-mono text-center" style="color:var(--green)">฿${Utils.money(totalMarkup)}</td>
+        <td class="font-mono text-center">฿${Utils.money(totalFixedWage)}</td>
+        <td class="font-mono text-center">฿${Utils.money(totalOtWage)}</td>
+        <td class="font-mono font-semibold text-center" style="color:var(--blueprint-dark)">฿${Utils.money(grandTotal)}</td>
       </tr>
     `;
   }
