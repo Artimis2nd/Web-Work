@@ -14,14 +14,12 @@
               <option value="">-- ทุกคน --</option>
             </select>
           </div>
-          <div>
+          <div class="sm:col-span-2">
             <label class="field-label">ช่วงวันที่</label>
             <input type="text" id="f-daterange" class="field-input" placeholder="เลือกช่วงวันที่">
           </div>
-          <div>
-            <!-- Label ว่างเพื่อให้ปุ่มจัดตำแหน่งตรงกับ input อื่นๆ -->
-            <label class="field-label">&nbsp;</label>
-            <button type="submit" class="btn btn-primary w-full">กรองข้อมูล</button>
+          <div class="sm:col-span-4">
+            <button type="submit" class="btn btn-primary">กรองข้อมูล</button>
           </div>
         </form>
       </div>
@@ -43,7 +41,7 @@
             <thead>
               <tr><th>วันที่</th><th>ไซต์งาน</th><th>รายละเอียดงาน</th><th>ผู้สั่งงาน</th><th>ค่าแรงดิบ</th><th>รวม (+20%)</th></tr>
             </thead>
-            <tbody id="rows"><tr><td colspan="6" class="text-center py-6" style="color:var(--ink-soft)">กรุณาเลือกเงื่อนไขและกด 'กรองข้อมูล' เพื่อแสดงรายงาน</td></tr></tbody>
+            <tbody id="rows">${Utils.skeletonRows(6, 6)}</tbody>
           </table>
         </div>
       </div>
@@ -60,7 +58,9 @@
       singleMode: false,
       format: 'DD/MM/YYYY',
       lang: 'th-TH',
-      autoApply: true // ทำให้ปฏิทินปิดเองเมื่อเลือกวันที่เสร็จ
+      setup: (picker) => {
+        picker.on('selected', (date1, date2) => load());
+      }
     });
   }
 
@@ -96,13 +96,13 @@
     const tbody = document.getElementById('rows');
     tbody.innerHTML = Utils.skeletonRows(6, 6);
 
-    const startDate = datepicker ? Utils.toApiDate(datepicker.getStartDate()) : null;
-    const endDate = datepicker ? Utils.toApiDate(datepicker.getEndDate()) : null;
+    const startDate = datepicker && datepicker.getStartDate() ? datepicker.getStartDate().toJSDate().toISOString().split('T')[0] : null;
+    const endDate = datepicker && datepicker.getEndDate() ? datepicker.getEndDate().toJSDate().toISOString().split('T')[0] : null;
 
     const payload = {
       workerName: document.getElementById('f-worker').value || null,
-      startDate,
-      endDate
+      startDate: startDate,
+      endDate: endDate
     };
 
     try {
@@ -123,10 +123,7 @@
     }
   }
 
-  async function initializePage() {
-    layout();
-    // โหลดเฉพาะรายชื่อคนงานมาใส่ใน dropdown
-    await loadWorkerOptions();
-  }
-  initializePage();
+  layout();
+  loadWorkerOptions();
+  load();
 })();

@@ -43,7 +43,7 @@
             <thead>
               <tr><th>วันที่</th><th>ไซต์งาน</th><th>รายละเอียดงาน</th><th>ผู้สั่งงาน</th><th>ค่าแรงดิบ</th><th>รวม (+20%)</th></tr>
             </thead>
-            <tbody id="rows"><tr><td colspan="6" class="text-center py-6" style="color:var(--ink-soft)">กรุณาเลือกเงื่อนไขและกด 'กรองข้อมูล' เพื่อแสดงรายงาน</td></tr></tbody>
+            <tbody id="rows">${Utils.skeletonRows(6, 6)}</tbody>
           </table>
         </div>
       </div>
@@ -62,6 +62,12 @@
       lang: 'th-TH',
       autoApply: true // ทำให้ปฏิทินปิดเองเมื่อเลือกวันที่เสร็จ
     });
+
+    // Set default date range to the current month
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    datepicker.setDateRange(firstDay, lastDay);
   }
 
   async function loadWorkerOptions() {
@@ -96,13 +102,13 @@
     const tbody = document.getElementById('rows');
     tbody.innerHTML = Utils.skeletonRows(6, 6);
 
-    const startDate = datepicker ? Utils.toApiDate(datepicker.getStartDate()) : null;
-    const endDate = datepicker ? Utils.toApiDate(datepicker.getEndDate()) : null;
+    const startDate = datepicker && datepicker.getStartDate() ? datepicker.getStartDate().toJSDate().toISOString().split('T')[0] : null;
+    const endDate = datepicker && datepicker.getEndDate() ? datepicker.getEndDate().toJSDate().toISOString().split('T')[0] : null;
 
     const payload = {
       workerName: document.getElementById('f-worker').value || null,
-      startDate,
-      endDate
+      startDate: startDate,
+      endDate: endDate
     };
 
     try {
@@ -125,8 +131,10 @@
 
   async function initializePage() {
     layout();
-    // โหลดเฉพาะรายชื่อคนงานมาใส่ใน dropdown
+    // 1. รอให้โหลดรายชื่อคนงานเสร็จก่อน
     await loadWorkerOptions();
+    // 2. จากนั้นจึงโหลดข้อมูลรายงานครั้งแรก
+    load();
   }
   initializePage();
 })();
