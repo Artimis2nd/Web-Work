@@ -97,24 +97,24 @@
       const workerHeaders = new Set();
       logs.forEach(log => {
         log.Workers.forEach(w => {
-          workerHeaders.add(`${Utils.escapeHtml(w.WorkerName)}<br>(${w.DailyWage})`);
+          workerHeaders.add(`${Utils.escapeHtml(w.WorkerName)}(${w.DailyWage})`);
         });
       });
       const sortedWorkerHeaders = Array.from(workerHeaders).sort();
 
       // 2. Define column widths and render table header
       const columnWidths = {
-        'ลำดับ': '20px',
-        'วันที่': '35px',
-        'โครงการ': '60px',
-        'รายละเอียด': '150px',
-        'ค่าแรงดิบ': '30px',
-        'ปกติ+OT': '30px',
-        'เหมา': '30px',
-        'รวมทั้งหมด': '40px',
-        'ผู้สั่งงาน': '40px',
+        'ลำดับ': '30px',
+        'วันที่': '60px',
+        'โครงการ': '100px',
+        'รายละเอียด': '250px',
+        'ค่าแรงดิบ': '60px',
+        'ปกติ+OT': '60px',
+        'เหมา': '60px',
+        'รวมทั้งหมด': '80px',
+        'ผู้สั่งงาน': '60px',
       };
-      const defaultWorkerWidth = '26px'; // ความกว้างสำหรับคอลัมน์คนงาน
+      const defaultWorkerWidth = '30px'; // ความกว้างสำหรับคอลัมน์คนงาน
 
       const staticHeadersStart = ['ลำดับ', 'วันที่', 'โครงการ', 'รายละเอียด'];
       const staticHeadersEnd = ['ค่าแรงดิบ', 'ปกติ+OT', 'เหมา', 'รวมทั้งหมด', 'ผู้สั่งงาน'];
@@ -137,7 +137,7 @@
         let totalFixed = 0;
 
         log.Workers.forEach(w => {
-          const headerKey = `${Utils.escapeHtml(w.WorkerName)}<br>(${w.DailyWage})`;
+          const headerKey = `${Utils.escapeHtml(w.WorkerName)}(${w.DailyWage})`;
           let displayValue = '';
           if (w.WageType === 'fixed') { // ค่าแรงเหมา
             displayValue = `${Utils.smartMoney(w.FixedAmount)}-เหมา`;
@@ -159,10 +159,10 @@
         grandTotalOverall += grandTotal;
 
         const staticCellsStart = `
-          <td class="text-center">${index + 1}</td>
-          <td class="text-center">${Utils.formatDate(log.Date)}</td>
-          <td class="text-center">${Utils.escapeHtml(log.Site)}</td>
-          <td class="text-truncate text-left" title="${Utils.escapeHtml(log.JobDetail)}">${Utils.escapeHtml(log.JobDetail)}</td>
+          <td>${index + 1}</td>
+          <td>${Utils.formatDate(log.Date)}</td>
+          <td>${Utils.escapeHtml(log.Site)}</td>
+          <td class="text-truncate" title="${Utils.escapeHtml(log.JobDetail)}">${Utils.escapeHtml(log.JobDetail)}</td>
         `;
 
         const dynamicWorkerCells = sortedWorkerHeaders.map(header => {
@@ -171,11 +171,11 @@
         }).join('');
 
         const staticCellsEnd = `
-          <td class="font-mono text-center">${Utils.smartMoney(totalRaw)}</td>
-          <td class="font-mono text-center">${Utils.smartMoney(totalNormalOt)}</td>
-          <td class="font-mono text-center">${Utils.smartMoney(totalFixed)}</td>
-          <td class="font-mono text-right font-semibold" style="color:var(--blueprint-dark)">${Utils.smartMoney(grandTotal)}</td>
-          <td class="text-center">${Utils.escapeHtml(log.RequestedBy)}</td>
+          <td class="font-mono">${Utils.smartMoney(totalRaw)}</td>
+          <td class="font-mono">${Utils.smartMoney(totalNormalOt)}</td>
+          <td class="font-mono">${Utils.smartMoney(totalFixed)}</td>
+          <td class="font-mono font-semibold" style="color:var(--blueprint-dark)">${Utils.smartMoney(grandTotal)}</td>
+          <td>${Utils.escapeHtml(log.RequestedBy)}</td>
         `;
 
         return `<tr>${staticCellsStart}${dynamicWorkerCells}${staticCellsEnd}</tr>`;

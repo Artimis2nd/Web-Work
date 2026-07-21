@@ -2,7 +2,7 @@
  * ฟังก์ชันช่วยเหลือที่ใช้ร่วมกันทุกหน้า: จัดรูปแบบตัวเลข/วันที่, Toast, Layout, Loading, Error
  */
 const Utils = (() => {
-  const APP_VERSION = '2.3';
+  const APP_VERSION = '2.1';
   const THB = new Intl.NumberFormat('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const THB_INT = new Intl.NumberFormat('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 

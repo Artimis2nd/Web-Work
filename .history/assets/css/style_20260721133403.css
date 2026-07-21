@@ -118,38 +118,25 @@ body {
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
-  table-layout: fixed; /* Force table to respect column widths */
 }
 
 .tape-table thead th {
   position: relative;
-  text-align: center;
+  text-align: left;
   font-size: 0.7rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-soft);
   font-weight: 600;
-  padding: 0.7rem 2px; /* Further reduced horizontal padding */
+  padding: 0.7rem 0.3rem; /* Reduced horizontal padding */
   border-bottom: 2px solid var(--ink);
   background: var(--paper-card);
-  border-right: 1px solid var(--line);
-  word-wrap: break-word; /* Allow long words in header to wrap */
-  vertical-align: top; /* Align wrapped header text to the top */
-}
-
-.tape-table thead th:last-child {
-  border-right: none;
 }
 
 .tape-table tbody td {
-  padding: 0.65rem 2px; /* Further reduced horizontal padding */
+  padding: 0.65rem 0.3rem; /* Reduced horizontal padding */
   border-bottom: 1px dashed var(--line);
   font-size: 0.88rem;
-  border-right: 1px solid var(--line);
-}
-
-.tape-table tbody td:last-child {
-  border-right: none;
 }
 
 .tape-table tbody tr:hover td {
@@ -163,7 +150,7 @@ body {
 /* left ruler ticks on first column */
 .tape-table tbody td:first-child {
   position: relative;
-  padding-left: 4px; /* Reduced first column padding */
+  padding-left: 0.5rem; /* Reduced first column padding */
 }
 
 /* ---------- Rubber stamp badge ---------- */

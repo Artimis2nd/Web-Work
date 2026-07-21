@@ -104,17 +104,17 @@
 
       // 2. Define column widths and render table header
       const columnWidths = {
-        'ลำดับ': '20px',
-        'วันที่': '35px',
-        'โครงการ': '60px',
-        'รายละเอียด': '150px',
-        'ค่าแรงดิบ': '30px',
-        'ปกติ+OT': '30px',
-        'เหมา': '30px',
-        'รวมทั้งหมด': '40px',
-        'ผู้สั่งงาน': '40px',
+        'ลำดับ': '23px',
+        'วันที่': '40px',
+        'โครงการ': '80px',
+        'รายละเอียด': '200px',
+        'ค่าแรงดิบ': '40px',
+        'ปกติ+OT': '40px',
+        'เหมา': '40px',
+        'รวมทั้งหมด': '50px',
+        'ผู้สั่งงาน': '60px',
       };
-      const defaultWorkerWidth = '26px'; // ความกว้างสำหรับคอลัมน์คนงาน
+      const defaultWorkerWidth = '24px'; // ความกว้างสำหรับคอลัมน์คนงาน
 
       const staticHeadersStart = ['ลำดับ', 'วันที่', 'โครงการ', 'รายละเอียด'];
       const staticHeadersEnd = ['ค่าแรงดิบ', 'ปกติ+OT', 'เหมา', 'รวมทั้งหมด', 'ผู้สั่งงาน'];
@@ -159,10 +159,10 @@
         grandTotalOverall += grandTotal;
 
         const staticCellsStart = `
-          <td class="text-center">${index + 1}</td>
-          <td class="text-center">${Utils.formatDate(log.Date)}</td>
-          <td class="text-center">${Utils.escapeHtml(log.Site)}</td>
-          <td class="text-truncate text-left" title="${Utils.escapeHtml(log.JobDetail)}">${Utils.escapeHtml(log.JobDetail)}</td>
+          <td>${index + 1}</td>
+          <td>${Utils.formatDate(log.Date)}</td>
+          <td>${Utils.escapeHtml(log.Site)}</td>
+          <td class="text-truncate" title="${Utils.escapeHtml(log.JobDetail)}">${Utils.escapeHtml(log.JobDetail)}</td>
         `;
 
         const dynamicWorkerCells = sortedWorkerHeaders.map(header => {
@@ -171,11 +171,11 @@
         }).join('');
 
         const staticCellsEnd = `
-          <td class="font-mono text-center">${Utils.smartMoney(totalRaw)}</td>
-          <td class="font-mono text-center">${Utils.smartMoney(totalNormalOt)}</td>
-          <td class="font-mono text-center">${Utils.smartMoney(totalFixed)}</td>
-          <td class="font-mono text-right font-semibold" style="color:var(--blueprint-dark)">${Utils.smartMoney(grandTotal)}</td>
-          <td class="text-center">${Utils.escapeHtml(log.RequestedBy)}</td>
+          <td class="font-mono">${Utils.smartMoney(totalRaw)}</td>
+          <td class="font-mono">${Utils.smartMoney(totalNormalOt)}</td>
+          <td class="font-mono">${Utils.smartMoney(totalFixed)}</td>
+          <td class="font-mono font-semibold" style="color:var(--blueprint-dark)">${Utils.smartMoney(grandTotal)}</td>
+          <td>${Utils.escapeHtml(log.RequestedBy)}</td>
         `;
 
         return `<tr>${staticCellsStart}${dynamicWorkerCells}${staticCellsEnd}</tr>`;
