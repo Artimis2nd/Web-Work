@@ -176,9 +176,9 @@
           <!-- Part 1: Fixed Wage -->
           <div class="space-y-3">
             <h3 class="font-semibold text-base border-b pb-2">กลุ่มค่าแรงเหมา</h3>
-            <div class="flex justify-between items-center text-sm">
-              <label for="summary-transport-cost" class="font-medium">ค่าขนส่งชิ้นส่วนคงที่:</label>
-              <input type="text" id="summary-transport-cost" class="w-32 font-mono text-right rounded-md p-1 border" style="border-color: var(--line); border-width: 1.5px;" value="0.00">
+            <div class="text-sm">
+              <label class="field-label">ค่าขนส่งชิ้นส่วนคงที่:</label>
+              <input type="text" id="summary-transport-cost" class="field-input font-mono text-right" value="0.00">
             </div>
             <div class="flex justify-between text-sm pt-2">
               <span class="font-medium">ยอดรวมค่าแรงเหมาทั้งหมด:</span>

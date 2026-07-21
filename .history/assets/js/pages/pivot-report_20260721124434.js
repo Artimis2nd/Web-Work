@@ -31,8 +31,6 @@
           </table>
         </div>
       </div>
-
-      <div id="summary-card-container" class="mt-6"></div>
     `;
 
     picker = new Litepicker({
@@ -59,10 +57,8 @@
 
     const tableHead = document.getElementById('table-head');
     const tbody = document.getElementById('rows');
-    const summaryContainer = document.getElementById('summary-card-container');
     tableHead.innerHTML = '';
     tbody.innerHTML = `<tr><td colspan="5">${Utils.skeletonRows(8, 5)}</td></tr>`;
-    summaryContainer.innerHTML = ''; // Clear previous summary
 
     const payload = {
       startDate: startDate.toJSDate().toISOString().split('T')[0],
@@ -76,7 +72,6 @@
       if (!logs.length) {
         tableHead.innerHTML = `<th>ผลลัพธ์</th>`;
         tbody.innerHTML = `<tr><td class="text-center py-6" style="color:var(--ink-soft)">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>`;
-        summaryContainer.innerHTML = '';
         return;
       }
 
@@ -96,12 +91,7 @@
       tableHead.innerHTML = allHeaders.map(h => `<th>${h}</th>`).join('');
 
       // 3. Render table body
-      let grandTotalRaw = 0;
-      let grandTotalNormalOt = 0;
-      let grandTotalFixed = 0;
-      let grandTotalOverall = 0;
-
-      const tableRows = logs.map((log, index) => {
+      tbody.innerHTML = logs.map((log, index) => {
         const workerDataMap = new Map();
         let totalRaw = 0;
         let totalNormalOt = 0;
@@ -122,12 +112,6 @@
         });
 
         const grandTotal = totalNormalOt + totalFixed;
-
-        // Accumulate grand totals
-        grandTotalRaw += totalRaw;
-        grandTotalNormalOt += totalNormalOt;
-        grandTotalFixed += totalFixed;
-        grandTotalOverall += grandTotal;
 
         const staticCellsStart = `
           <td>${index + 1}</td>
@@ -150,11 +134,7 @@
         `;
 
         return `<tr>${staticCellsStart}${dynamicWorkerCells}${staticCellsEnd}</tr>`;
-      });
-
-      tbody.innerHTML = tableRows.join('');
-
-      renderSummaryCard({ grandTotalRaw, grandTotalNormalOt, grandTotalFixed, grandTotalOverall });
+      }).join('');
 
     } catch (err) {
       const tr = document.createElement('tr');
@@ -164,79 +144,6 @@
       tr.appendChild(td);
       tbody.appendChild(tr);
     }
-  }
-
-  function renderSummaryCard(totals) {
-    const container = document.getElementById('summary-card-container');
-    container.innerHTML = `
-      <div class="ledger-card p-5">
-        <h2 class="font-display text-xl font-semibold mb-4">รายการสรุปเพื่อตรวจทาน</h2>
-        <div class="grid md:grid-cols-3 gap-6">
-          
-          <!-- Part 1: Fixed Wage -->
-          <div class="space-y-3">
-            <h3 class="font-semibold text-base border-b pb-2">กลุ่มค่าแรงเหมา</h3>
-            <div class="flex justify-between items-center text-sm">
-              <label for="summary-transport-cost" class="font-medium">ค่าขนส่งชิ้นส่วนคงที่:</label>
-              <input type="text" id="summary-transport-cost" class="w-32 font-mono text-right rounded-md p-1 border" style="border-color: var(--line); border-width: 1.5px;" value="0.00">
-            </div>
-            <div class="flex justify-between text-sm pt-2">
-              <span class="font-medium">ยอดรวมค่าแรงเหมาทั้งหมด:</span>
-              <span class="font-mono" id="summary-total-fixed">฿${Utils.money(totals.grandTotalFixed)}</span>
-            </div>
-          </div>
-
-          <!-- Part 2: Daily Wage -->
-          <div class="space-y-2">
-            <h3 class="font-semibold text-base border-b pb-2">กลุ่มค่าแรงรายวัน</h3>
-            <div class="flex justify-between text-sm"><span class="text-gray-600">ยอดรวมค่าแรงดิบทั้งหมด:</span><span class="font-mono">฿${Utils.money(totals.grandTotalRaw)}</span></div>
-            <div class="flex justify-between text-sm"><span class="text-gray-600">ยอดรวมค่าแรงที่+20%:</span><span class="font-mono">฿${Utils.money(totals.grandTotalNormalOt)}</span></div>
-            <div class="flex justify-between text-sm font-medium"><span class="">ยอดรวมค่าแรงทั้งหมด:</span><span class="font-mono" id="summary-total-overall">฿${Utils.money(totals.grandTotalOverall)}</span></div>
-          </div>
-
-          <!-- Part 3: Grand Total -->
-          <div class="space-y-2">
-            <h3 class="font-semibold text-base border-b pb-2">สรุปค่าแรงงวดนี้</h3>
-            <div class="p-4 rounded-lg" style="background-color: #eef1f3;">
-              <div class="flex justify-between items-center text-lg font-bold" style="color: var(--blueprint-dark);">
-                <span>ยอดรวมค่าแรงสุทธิทั้งหมด:</span>
-                <span class="font-mono text-xl" id="summary-net-total">฿0.00</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    `;
-
-    const transportInput = document.getElementById('summary-transport-cost');
-    const netTotalEl = document.getElementById('summary-net-total');
-
-    function updateNetTotal() {
-      const transportCost = parseFloat(transportInput.value.replace(/,/g, '')) || 0;
-      const totalFixed = totals.grandTotalFixed;
-      const totalOverall = totals.grandTotalOverall; // This is totalNormalOt + totalFixed from table
-
-      // ยอดรวมค่าแรงสุทธิทั้งหมด = ค่าขนส่ง + ยอดรวมค่าแรงเหมา + ยอดรวมค่าแรงทั้งหมด
-      // Note: grandTotalOverall already includes grandTotalFixed. So we need to be careful.
-      // The request is: "ค่าขนส่งชิ้นส่วนคงที่:"+"ยอดรวมค่าแรงเหมาทั้งหมด:"+"ยอดรวมค่าแรงทั้งหมด:"
-      // This seems like double counting. Let's assume "ยอดรวมค่าแรงทั้งหมด" refers to the grand total from the table.
-      // So, Net Total = Transport Cost + Grand Total from table.
-      const netTotal = transportCost + totalOverall;
-
-      netTotalEl.textContent = '฿' + Utils.money(netTotal);
-    }
-
-    transportInput.addEventListener('input', (e) => {
-      let value = e.target.value.replace(/[^0-9.]/g, '');
-      updateNetTotal();
-    });
-    transportInput.addEventListener('blur', (e) => {
-        const num = parseFloat(e.target.value.replace(/,/g, '')) || 0;
-        e.target.value = Utils.money(num);
-    });
-
-    updateNetTotal(); // Initial calculation
   }
 
   layout();
