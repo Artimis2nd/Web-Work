@@ -28,6 +28,10 @@
 
       <div class="ledger-card p-4 mb-6">
         <div class="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-5 text-center">
+          <div class="col-span-2 md:col-span-1 border-b md:border-b-0 md:border-r border-dashed border-slate-200 pb-4 md:pb-0 md:pr-4">
+            <div class="kpi-label">ยอดรวมทั้งหมด</div>
+            <div id="report-grand-total" class="font-mono font-bold text-2xl mt-1" style="color:var(--blueprint-dark)">-</div>
+          </div>
           <div class="flex-1">
             <div class="kpi-label">ยอดค่าแรงดิบ</div>
             <div id="summary-raw" class="font-mono text-lg mt-1">-</div>
@@ -40,13 +44,9 @@
             <div class="kpi-label">ค่าแรงเหมา</div>
             <div id="summary-fixed" class="font-mono text-lg mt-1">-</div>
           </div>
-          <div class="flex-1 border-b md:border-b-0 md:border-r border-dashed border-slate-200 pb-4 md:pb-0 md:pr-4">
+          <div class="flex-1">
             <div class="kpi-label">ค่าแรง OT</div>
             <div id="summary-ot" class="font-mono text-lg mt-1">-</div>
-          </div>
-          <div class="col-span-2 md:col-span-1">
-            <div class="kpi-label">ยอดรวมทั้งหมด</div>
-            <div id="report-grand-total" class="font-mono font-bold text-2xl mt-1" style="color:var(--blueprint-dark)">-</div>
           </div>
         </div>
       </div>

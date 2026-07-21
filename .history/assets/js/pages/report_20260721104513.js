@@ -26,28 +26,10 @@
         </form>
       </div>
 
-      <div class="ledger-card p-4 mb-6">
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-5 text-center">
-          <div class="flex-1">
-            <div class="kpi-label">ยอดค่าแรงดิบ</div>
-            <div id="summary-raw" class="font-mono text-lg mt-1">-</div>
-          </div>
-          <div class="flex-1">
-            <div class="kpi-label">เพิ่ม+20%</div>
-            <div id="summary-markup" class="font-mono text-lg mt-1" style="color:var(--green)">-</div>
-          </div>
-          <div class="flex-1">
-            <div class="kpi-label">ค่าแรงเหมา</div>
-            <div id="summary-fixed" class="font-mono text-lg mt-1">-</div>
-          </div>
-          <div class="flex-1 border-b md:border-b-0 md:border-r border-dashed border-slate-200 pb-4 md:pb-0 md:pr-4">
-            <div class="kpi-label">ค่าแรง OT</div>
-            <div id="summary-ot" class="font-mono text-lg mt-1">-</div>
-          </div>
-          <div class="col-span-2 md:col-span-1">
-            <div class="kpi-label">ยอดรวมทั้งหมด</div>
-            <div id="report-grand-total" class="font-mono font-bold text-2xl mt-1" style="color:var(--blueprint-dark)">-</div>
-          </div>
+      <div class="ledger-card p-4 mb-6 text-center">
+        <div class="kpi-label">ยอดรวมของช่วงวันที่ที่เลือก</div>
+        <div id="report-grand-total" class="font-mono font-bold text-2xl mt-1" style="color:var(--blueprint-dark)">
+          -
         </div>
       </div>
 
@@ -171,7 +153,7 @@
 
     return `
       <tr>
-        <td>${Utils.escapeHtml(workerName)}</td>
+        <td>${Utils.escapeHtml(workerName)} <span class="text-xs" style="color:var(--ink-soft)">(${Utils.money(dailyWage)} บาท)</span></td>
         <td>${workSummary}</td>
         <td class="font-mono">฿${Utils.money(totalRawWage)}</td>
         <td class="font-mono" style="color:var(--green)">฿${Utils.money(totalMarkup)}</td>
@@ -197,31 +179,15 @@
 
     try {
       const data = await Api.getReport(payload);
+      const totalDisplay = document.getElementById('report-grand-total');
 
       if (data.logs.length > 0) {
         const processedData = processReportData(data.logs);
-        
-        // Calculate all totals
-        const totalRaw = processedData.reduce((sum, w) => sum + w.totalRawWage, 0);
-        const totalMarkup = processedData.reduce((sum, w) => sum + w.totalMarkup, 0);
-        const totalFixed = processedData.reduce((sum, w) => sum + w.totalFixedWage, 0);
-        const totalOt = processedData.reduce((sum, w) => sum + w.totalOtWage, 0);
-        const grandTotal = totalRaw + totalMarkup;
-
-        // Update UI
-        document.getElementById('report-grand-total').textContent = '฿' + Utils.money(grandTotal);
-        document.getElementById('summary-raw').textContent = '฿' + Utils.money(totalRaw);
-        document.getElementById('summary-markup').textContent = '฿' + Utils.money(totalMarkup);
-        document.getElementById('summary-fixed').textContent = '฿' + Utils.money(totalFixed);
-        document.getElementById('summary-ot').textContent = '฿' + Utils.money(totalOt);
-
+        const grandTotal = processedData.reduce((sum, worker) => sum + worker.totalRawWage + worker.totalMarkup, 0);
+        totalDisplay.textContent = '฿' + Utils.money(grandTotal);
         tbody.innerHTML = processedData.map(renderRow).join('');
       } else {
-        document.getElementById('report-grand-total').textContent = '฿0.00';
-        document.getElementById('summary-raw').textContent = '฿0.00';
-        document.getElementById('summary-markup').textContent = '฿0.00';
-        document.getElementById('summary-fixed').textContent = '฿0.00';
-        document.getElementById('summary-ot').textContent = '฿0.00';
+        totalDisplay.textContent = '฿0.00';
         tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6" style="color:var(--ink-soft)">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>`;
       }
     } catch (err) {
