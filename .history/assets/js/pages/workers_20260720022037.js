@@ -38,9 +38,9 @@
           <div class="overflow-x-auto">
             <table class="tape-table">
               <thead>
-                <tr><th class="text-center">ชื่อ-นามสกุล</th><th class="text-center">ค่าแรง/วัน</th><th class="text-center">สถานะ</th><th></th></tr>
+                <tr><th>ID</th><th>ชื่อ-นามสกุล</th><th>ค่าแรง/วัน</th><th>สถานะ</th><th></th></tr>
               </thead>
-              <tbody id="worker-rows">${Utils.skeletonRows(5, 4)}</tbody>
+              <tbody id="worker-rows">${Utils.skeletonRows(5, 5)}</tbody>
             </table>
           </div>
         </div>
@@ -75,10 +75,11 @@
     const stampLabel = w.Status === 'Active' ? 'ทำงานอยู่' : 'พักงาน';
     return `
       <tr>
-        <td class="font-semibold text-center">${Utils.escapeHtml(w.FullName)}</td>
-        <td class="font-mono text-center">฿${Utils.money(w.DailyWage)}</td>
-        <td class="text-center"><span class="stamp ${stampClass}">${stampLabel}</span></td>
-        <td class="flex gap-2 justify-center">
+        <td class="font-mono" style="color:var(--ink-soft)">#${w.ID}</td>
+        <td class="font-semibold">${Utils.escapeHtml(w.FullName)}</td>
+        <td class="font-mono">฿${Utils.money(w.DailyWage)}</td>
+        <td><span class="stamp ${stampClass}">${stampLabel}</span></td>
+        <td class="flex gap-2">
           <button class="btn btn-outline btn-sm" data-edit="${w.ID}">แก้ไข</button>
           <button class="btn btn-danger btn-sm" data-delete="${w.ID}">ลบ</button>
         </td>
@@ -91,7 +92,7 @@
     try {
       const workers = await Api.getWorkers();
       if (!workers.length) {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6" style="color:var(--ink-soft)">ยังไม่มีรายชื่อคนงาน</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6" style="color:var(--ink-soft)">ยังไม่มีรายชื่อคนงาน</td></tr>`;
         return;
       }
       tbody.innerHTML = workers.map(renderRow).join('');
@@ -119,7 +120,7 @@
       tbody.innerHTML = '';
       const tr = document.createElement('tr');
       const td = document.createElement('td');
-      td.colSpan = 4;
+      td.colSpan = 5;
       td.appendChild(Utils.errorBanner(err.message, loadTable));
       tr.appendChild(td);
       tbody.appendChild(tr);
