@@ -154,6 +154,9 @@
       if (!logs.length) {
         tableHead.innerHTML = `<th>ผลลัพธ์</th>`;
         tbody.innerHTML = `<tr><td class="text-center py-6" style="color:var(--ink-soft)">${selectedSite ? 'ไม่พบข้อมูลสำหรับโครงการที่เลือก' : 'ไม่พบข้อมูลตามเงื่อนไขที่เลือก'}</td></tr>`;
+
+        tableHead.innerHTML = `<th>ผลลัพธ์</th>`;
+        tbody.innerHTML = `<tr><td class="text-center py-6" style="color:var(--ink-soft)">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>`;
         printBtn.hidden = true;
         summaryContainer.innerHTML = '';
         return;
@@ -338,5 +341,4 @@
   }
 
   layout();
-  loadSiteHistory();
 })();

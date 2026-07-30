@@ -338,5 +338,4 @@
   }
 
   layout();
-  loadSiteHistory();
 })();

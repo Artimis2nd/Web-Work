@@ -110,17 +110,11 @@
       return;
     }
 
-    const selectedSite = document.getElementById('f-site').value;
-
     const reportTitle = document.getElementById('report-title');
-    let titleText = `ค่าแรงรายวันประจำ วันที่ ${startDateStr.split('-').reverse().join('/')} - วันที่ ${endDateStr.split('-').reverse().join('/')}`;
-    if (selectedSite) {
-      titleText += ` | โครงการ: ${selectedSite}`;
-    }
-    reportTitle.textContent = titleText;
+    reportTitle.textContent = `ค่าแรงรายวันประจำ วันที่ ${startDateStr.split('-').reverse().join('/')} - วันที่ ${endDateStr.split('-').reverse().join('/')}`;
+
 
     const tableHead = document.getElementById('table-head');
-
     const tbody = document.getElementById('rows');
     const printBtn = document.getElementById('print-report-btn');
     const summaryContainer = document.getElementById('summary-card-container');
@@ -138,11 +132,6 @@
       const data = await Api.getLogs(payload);
       let logs = data.logs || [];
 
-      // Filter by selected site if specified
-      if (selectedSite) {
-        logs = logs.filter(log => log.Site === selectedSite);
-      }
-
       // Sort logs by date descending. Handle cases where date might be a string or an object.
       logs.sort((a, b) => {
         // Convert date to a consistent YYYY-MM-DD string format for reliable sorting
@@ -153,7 +142,7 @@
 
       if (!logs.length) {
         tableHead.innerHTML = `<th>ผลลัพธ์</th>`;
-        tbody.innerHTML = `<tr><td class="text-center py-6" style="color:var(--ink-soft)">${selectedSite ? 'ไม่พบข้อมูลสำหรับโครงการที่เลือก' : 'ไม่พบข้อมูลตามเงื่อนไขที่เลือก'}</td></tr>`;
+        tbody.innerHTML = `<tr><td class="text-center py-6" style="color:var(--ink-soft)">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>`;
         printBtn.hidden = true;
         summaryContainer.innerHTML = '';
         return;
@@ -338,5 +327,4 @@
   }
 
   layout();
-  loadSiteHistory();
 })();
