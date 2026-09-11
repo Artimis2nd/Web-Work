@@ -457,6 +457,52 @@ textarea.field-input {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ---------- Site filter dropdown ---------- */
+.site-filter-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.site-filter-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 70;
+  width: 240px;
+  max-height: 320px;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(27, 36, 48, 0.18);
+  padding: 0.75rem;
+}
+
+.site-filter-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  flex-shrink: 0;
+}
+
+.site-filter-actions .btn { flex: 1; }
+
+.site-filter-list {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.site-filter-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
 /* ---------- Modal ---------- */
 .modal-backdrop {
   position: fixed;

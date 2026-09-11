@@ -3,6 +3,12 @@
 
   const content = document.getElementById('page-content');
 
+  document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('site-filter-dropdown');
+    const wrap = document.getElementById('site-filter-wrap');
+    if (dropdown && wrap && !wrap.contains(e.target)) dropdown.classList.add('hidden');
+  });
+
   function skeletonKpis() {
     content.innerHTML = `
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -211,6 +217,57 @@
       ? [...data.recentGroups].sort((a, b) => new Date(b.date) - new Date(a.date))
       : [];
 
+    const allSites = Array.from(new Set(sortedRecentGroups.map(g => g.site || '(ไม่ระบุไซต์งาน)'))).sort();
+    let selectedSites = new Set(allSites); // เริ่มต้น = เลือกทุกไซต์ (ไม่กรอง)
+
+    function getFilteredGroups() {
+      if (selectedSites.size === allSites.length) return sortedRecentGroups;
+      return sortedRecentGroups.filter(g => selectedSites.has(g.site || '(ไม่ระบุไซต์งาน)'));
+    }
+
+    function attachRowListeners() {
+      content.querySelectorAll('[data-edit-group]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const groupId = btn.getAttribute('data-edit-group');
+          window.location.href = 'daily-log.html?edit=' + encodeURIComponent(groupId);
+        });
+      });
+
+      content.querySelectorAll('[data-delete-group]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const groupId = btn.getAttribute('data-delete-group');
+          if (!confirm('ยืนยันการลบใบงานนี้ทั้งหมด?')) return;
+          btn.disabled = true;
+          btn.innerHTML = '<span class="spinner spinner-dark"></span>';
+          try {
+            await Api.deleteLogGroup({ groupId });
+            Utils.toast('ลบใบงานเรียบร้อย', 'success');
+            load();
+          } catch (err) {
+            Utils.toast(err.message, 'error');
+            btn.disabled = false;
+            btn.textContent = '🗑️';
+          }
+        });
+      });
+    }
+
+    function updateFilterBadge() {
+      const badge = document.getElementById('site-filter-badge');
+      if (!badge) return;
+      badge.textContent = selectedSites.size === allSites.length ? '' : ` (${selectedSites.size}/${allSites.length})`;
+    }
+
+    function renderTableBody() {
+      const filtered = getFilteredGroups();
+      const tbody = document.getElementById('log-rows');
+      tbody.innerHTML = filtered.length
+        ? filtered.map(renderGroupRow).join('')
+        : `<tr><td colspan="8" class="text-center py-6" style="color:var(--ink-soft)">ไม่พบใบงานตามไซต์งานที่เลือก</td></tr>`;
+      attachRowListeners();
+      updateFilterBadge();
+    }
+
     content.innerHTML = `
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         ${kpiCard('จำนวนคนงานทั้งหมด', data.totalWorkers, 'var(--blueprint)')}
@@ -220,9 +277,27 @@
       </div>
 
       <div class="ledger-card p-4">
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h2 class="font-display text-lg font-semibold">รายการใบงานล่าสุด</h2>
-          <div class="flex gap-2">
+          <div class="flex gap-2 flex-wrap">
+            ${allSites.length ? `
+            <div class="site-filter-wrap" id="site-filter-wrap">
+              <button id="site-filter-btn" type="button" class="btn btn-outline btn-sm">🔍 กรองไซต์งาน<span id="site-filter-badge"></span></button>
+              <div id="site-filter-dropdown" class="site-filter-dropdown hidden">
+                <div class="site-filter-actions">
+                  <button id="site-filter-all" type="button" class="btn btn-outline btn-sm">เลือกทั้งหมด</button>
+                  <button id="site-filter-none" type="button" class="btn btn-outline btn-sm">ไม่เลือกเลย</button>
+                </div>
+                <div id="site-filter-list" class="site-filter-list">
+                  ${allSites.map(site => `
+                    <label class="site-filter-item">
+                      <input type="checkbox" class="site-filter-checkbox" value="${Utils.escapeHtml(site)}" checked>
+                      <span>${Utils.escapeHtml(site)}</span>
+                    </label>
+                  `).join('')}
+                </div>
+              </div>
+            </div>` : ''}
             <button id="view-selected-btn" class="btn btn-outline btn-sm">📋 ดูรายการ</button>
             <a href="daily-log.html" class="btn btn-amber btn-sm">+ บันทึกงานใหม่</a>
             <button id="backup-btn" class="btn btn-outline btn-sm">💾 Backup ไฟล์</button>
@@ -254,32 +329,37 @@
       </div>
     `;
 
-    // Edit buttons
-    content.querySelectorAll('[data-edit-group]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const groupId = btn.getAttribute('data-edit-group');
-        window.location.href = 'daily-log.html?edit=' + encodeURIComponent(groupId);
-      });
-    });
+    attachRowListeners();
 
-    // Delete buttons
-    content.querySelectorAll('[data-delete-group]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const groupId = btn.getAttribute('data-delete-group');
-        if (!confirm('ยืนยันการลบใบงานนี้ทั้งหมด?')) return;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner spinner-dark"></span>';
-        try {
-          await Api.deleteLogGroup({ groupId });
-          Utils.toast('ลบใบงานเรียบร้อย', 'success');
-          load();
-        } catch (err) {
-          Utils.toast(err.message, 'error');
-          btn.disabled = false;
-          btn.textContent = '🗑️';
-        }
+    // Site filter dropdown
+    const siteFilterBtn = document.getElementById('site-filter-btn');
+    if (siteFilterBtn) {
+      const siteFilterDropdown = document.getElementById('site-filter-dropdown');
+
+      siteFilterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        siteFilterDropdown.classList.toggle('hidden');
       });
-    });
+
+      siteFilterDropdown.querySelectorAll('.site-filter-checkbox').forEach(cb => {
+        cb.addEventListener('change', () => {
+          if (cb.checked) selectedSites.add(cb.value);
+          else selectedSites.delete(cb.value);
+          renderTableBody();
+        });
+      });
+
+      document.getElementById('site-filter-all').addEventListener('click', () => {
+        selectedSites = new Set(allSites);
+        siteFilterDropdown.querySelectorAll('.site-filter-checkbox').forEach(cb => cb.checked = true);
+        renderTableBody();
+      });
+      document.getElementById('site-filter-none').addEventListener('click', () => {
+        selectedSites = new Set();
+        siteFilterDropdown.querySelectorAll('.site-filter-checkbox').forEach(cb => cb.checked = false);
+        renderTableBody();
+      });
+    }
 
     // Select All checkbox
     const selectAllCheckbox = document.getElementById('select-all-checkbox');
