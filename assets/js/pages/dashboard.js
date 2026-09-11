@@ -3,6 +3,17 @@
 
   const content = document.getElementById('page-content');
 
+  const ACTION_PIN = '1225';
+  function verifyPin() {
+    const pin = prompt('การทำงานนี้ต้องใส่รหัสผ่านก่อน\nกรุณาใส่รหัส:');
+    if (pin === null) return false;
+    if (pin.trim() !== ACTION_PIN) {
+      Utils.toast('รหัสผ่านไม่ถูกต้อง — ยกเลิกการทำงาน', 'error');
+      return false;
+    }
+    return true;
+  }
+
   function skeletonKpis() {
     content.innerHTML = `
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -49,6 +60,163 @@
     `;
   }
 
+  // ============================================================
+  // Backup Viewer Modal
+  // ============================================================
+  function closeModal() {
+    const backdrop = document.getElementById('backup-modal-backdrop');
+    if (backdrop) backdrop.remove();
+  }
+
+  function openBackupListModal() {
+    closeModal();
+    const backdrop = document.createElement('div');
+    backdrop.id = 'backup-modal-backdrop';
+    backdrop.className = 'modal-backdrop';
+    backdrop.innerHTML = `
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 class="font-display text-lg font-semibold">โหลดบันทึกจาก Backup</h3>
+          <button id="modal-close-btn" class="btn btn-outline btn-sm">✕ ปิด</button>
+        </div>
+        <div id="modal-body" class="modal-body">
+          <div class="text-center py-6" style="color:var(--ink-soft)">กำลังโหลดรายชื่อไฟล์...</div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
+    document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+
+    loadBackupList();
+  }
+
+  async function loadBackupList() {
+    const body = document.getElementById('modal-body');
+    if (!body) return;
+    body.innerHTML = `<div class="text-center py-6" style="color:var(--ink-soft)">กำลังโหลดรายชื่อไฟล์...</div>`;
+    try {
+      const files = await Api.listBackups();
+      if (!body.isConnected) return;
+      if (!files.length) {
+        body.innerHTML = `<div class="text-center py-6" style="color:var(--ink-soft)">ยังไม่มีไฟล์ Backup — กดปุ่ม "Backup ไฟล์" ก่อน</div>`;
+        return;
+      }
+      body.innerHTML = `
+        <div class="flex flex-col gap-2">
+          ${files.map(f => `
+            <button class="btn btn-outline w-full justify-between backup-file-row" data-file-id="${Utils.escapeHtml(f.id)}">
+              <span>${Utils.escapeHtml(f.name)}</span>
+              <span class="font-mono text-xs" style="color:var(--ink-soft)">${Utils.formatDate(f.createdDate)}</span>
+            </button>
+          `).join('')}
+        </div>
+      `;
+      body.querySelectorAll('.backup-file-row').forEach(btn => {
+        btn.addEventListener('click', () => loadBackupData(btn.getAttribute('data-file-id')));
+      });
+    } catch (err) {
+      if (!body.isConnected) return;
+      body.innerHTML = '';
+      body.appendChild(Utils.errorBanner(err.message, loadBackupList));
+    }
+  }
+
+  async function loadBackupData(fileId) {
+    const body = document.getElementById('modal-body');
+    if (!body) return;
+    body.innerHTML = `<table class="tape-table"><tbody>${Utils.skeletonRows(6, 6)}</tbody></table>`;
+    try {
+      const data = await Api.getBackupData({ fileId });
+      if (!body.isConnected) return;
+      const logs = data.logs || [];
+      const backHtml = `<div class="mt-3"><button id="back-to-list-btn" class="btn btn-outline btn-sm">← กลับไปเลือกไฟล์อื่น</button></div>`;
+
+      if (!logs.length) {
+        body.innerHTML = `<div class="text-center py-6" style="color:var(--ink-soft)">ไม่พบข้อมูลใบงานในไฟล์นี้</div>${backHtml}`;
+        document.getElementById('back-to-list-btn').addEventListener('click', loadBackupList);
+        return;
+      }
+
+      const rows = logs.map(g => {
+        const totalNormal = g.Workers.reduce((sum, w) => sum + (w.WageType !== 'fixed' ? Number(w.TotalWithMarkup) || 0 : 0), 0);
+        const totalFixed = g.Workers.reduce((sum, w) => sum + (w.WageType === 'fixed' ? Number(w.TotalWithMarkup) || 0 : 0), 0);
+        return `
+          <tr>
+            <td class="text-center"><input type="checkbox" class="backup-group-checkbox" value="${Utils.escapeHtml(g.GroupID)}"></td>
+            <td class="text-center">${Utils.formatDate(g.Date)}</td>
+            <td class="text-center">${Utils.escapeHtml(g.Site || '-')}</td>
+            <td class="text-truncate text-left" title="${Utils.escapeHtml(g.JobDetail || '-')}">${Utils.escapeHtml(g.JobDetail || '-')}</td>
+            <td class="font-mono text-center">${g.Workers.length} คน</td>
+            <td class="font-mono font-semibold text-center" style="color:var(--blueprint-dark)">฿${Utils.money(totalNormal + totalFixed)}</td>
+            <td class="text-center">${Utils.escapeHtml(g.RequestedBy || '-')}</td>
+          </tr>
+        `;
+      }).join('');
+
+      body.innerHTML = `
+        <div class="flex items-center justify-between mb-3 gap-2 flex-wrap">
+          <div class="font-semibold">${Utils.escapeHtml(data.fileName)}</div>
+          <a href="https://docs.google.com/spreadsheets/d/${encodeURIComponent(fileId)}/edit" target="_blank" rel="noopener" class="btn btn-outline btn-sm">เปิดใน Google Sheets ↗</a>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="tape-table">
+            <thead>
+              <tr>
+                <th style="width:36px"><input type="checkbox" id="backup-select-all"></th>
+                <th>วันที่</th><th>ไซต์งาน</th><th>รายละเอียด</th><th>จำนวนคน</th><th>รวมจ่าย</th><th>ผู้สั่งงาน</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-between mt-3 gap-2 flex-wrap">
+          <button id="back-to-list-btn" class="btn btn-outline btn-sm">← กลับไปเลือกไฟล์อื่น</button>
+          <button id="restore-selected-btn" class="btn btn-primary btn-sm">↩️ นำใบงานที่เลือกกลับเข้าระบบ</button>
+        </div>
+      `;
+      document.getElementById('back-to-list-btn').addEventListener('click', loadBackupList);
+
+      const selectAll = document.getElementById('backup-select-all');
+      selectAll.addEventListener('change', () => {
+        body.querySelectorAll('.backup-group-checkbox').forEach(cb => cb.checked = selectAll.checked);
+      });
+
+      const restoreBtn = document.getElementById('restore-selected-btn');
+      restoreBtn.addEventListener('click', async () => {
+        const checked = body.querySelectorAll('.backup-group-checkbox:checked');
+        const groupIds = Array.from(checked).map(cb => cb.value);
+        if (!groupIds.length) {
+          Utils.toast('กรุณาเลือกใบงานที่ต้องการนำกลับก่อน', 'error');
+          return;
+        }
+        if (!confirm(`นำใบงาน ${groupIds.length} รายการที่เลือกกลับเข้าระบบปัจจุบันหรือไม่?`)) return;
+
+        try {
+          const result = await Utils.animateProgress(
+            restoreBtn,
+            Api.restoreBackupGroups({ fileId, groupIds }),
+            'กำลังนำเข้า...',
+            '✅ นำเข้าสำเร็จ'
+          );
+          const restoredCount = (result.restored || []).length;
+          const skippedCount = (result.skipped || []).length;
+          let msg = `นำเข้าสำเร็จ ${restoredCount} รายการ`;
+          if (skippedCount) msg += ` (ข้าม ${skippedCount} รายการเพราะมีอยู่แล้วในระบบ)`;
+          Utils.toast(msg, 'success');
+          closeModal();
+          load();
+        } catch (err) {
+          Utils.toast(err.message, 'error');
+        }
+      });
+    } catch (err) {
+      if (!body.isConnected) return;
+      body.innerHTML = '';
+      body.appendChild(Utils.errorBanner(err.message, () => loadBackupData(fileId)));
+    }
+  }
+
   function renderData(data) {
     const sortedRecentGroups = data.recentGroups
       ? [...data.recentGroups].sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -69,6 +237,7 @@
             <button id="view-selected-btn" class="btn btn-outline btn-sm">📋 ดูรายการ</button>
             <a href="daily-log.html" class="btn btn-amber btn-sm">+ บันทึกงานใหม่</a>
             <button id="backup-btn" class="btn btn-outline btn-sm">💾 Backup ไฟล์</button>
+            <button id="load-backup-btn" class="btn btn-outline btn-sm">📂 โหลด Backup</button>
             <button id="clear-logs-btn" class="btn btn-danger btn-sm">🗑️ ล้างบันทึก</button>
           </div>
         </div>
@@ -151,6 +320,7 @@
     const backupBtn = document.getElementById('backup-btn');
     if (backupBtn) {
       backupBtn.addEventListener('click', async () => {
+        if (!verifyPin()) return;
         if (!confirm('สำรองไฟล์ฐานข้อมูล (WageSystem-Data) ไปยัง Google Drive ตอนนี้หรือไม่?')) return;
         try {
           const result = await Utils.animateProgress(
@@ -170,10 +340,20 @@
       });
     }
 
+    // Load backup button
+    const loadBackupBtn = document.getElementById('load-backup-btn');
+    if (loadBackupBtn) {
+      loadBackupBtn.addEventListener('click', () => {
+        if (!verifyPin()) return;
+        openBackupListModal();
+      });
+    }
+
     // Clear logs button
     const clearBtn = document.getElementById('clear-logs-btn');
     if (clearBtn) {
       clearBtn.addEventListener('click', async () => {
+        if (!verifyPin()) return;
         const typed = prompt('การกระทำนี้จะลบ "ใบงานทั้งหมด" ออกจากระบบอย่างถาวร กู้คืนไม่ได้\nแนะนำให้กด "Backup ไฟล์" ก่อนทุกครั้ง\n\nพิมพ์คำว่า ลบ เพื่อยืนยันการล้างบันทึก:');
         if (typed === null) return;
         if (typed.trim() !== 'ลบ') {

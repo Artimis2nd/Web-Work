@@ -111,6 +111,9 @@ function doPost(e) {
       case 'getRequesterHistory': response.data = getRequesterHistory(); break;
       case 'backupSpreadsheet': response.data = backupSpreadsheet(); break;
       case 'clearAllLogs': response.data = clearAllLogs(); break;
+      case 'listBackups': response.data = listBackups(); break;
+      case 'getBackupData': response.data = getBackupData(payload); break;
+      case 'restoreBackupGroups': response.data = restoreBackupGroups(payload); break;
       default: throw new Error('Unknown action: ' + action);
     }
     response.ok = true;
@@ -639,4 +642,128 @@ function clearAllLogs() {
 
   SpreadsheetApp.flush();
   return { cleared: true };
+}
+
+/**
+ * แสดงรายชื่อไฟล์ Backup ทั้งหมดในโฟลเดอร์ BACKUP_FOLDER_ID เรียงจากใหม่ไปเก่า
+ */
+function listBackups() {
+  var folder = DriveApp.getFolderById(BACKUP_FOLDER_ID);
+  var files = folder.getFilesByType(MimeType.GOOGLE_SHEETS);
+  var result = [];
+  while (files.hasNext()) {
+    var f = files.next();
+    result.push({ id: f.getId(), name: f.getName(), createdDate: f.getDateCreated().toISOString() });
+  }
+  result.sort(function(a, b) { return b.createdDate.localeCompare(a.createdDate); });
+  return result;
+}
+
+/**
+ * อ่านข้อมูลใบงาน (DailyLogs) จากไฟล์ Backup ที่ระบุ — อ่านอย่างเดียว ไม่แก้ไขไฟล์ backup หรือข้อมูลปัจจุบัน
+ */
+function getBackupData(payload) {
+  var fileId = payload.fileId;
+  if (!fileId) throw new Error('ต้องระบุ fileId ของไฟล์ backup');
+
+  var backupSs = SpreadsheetApp.openById(fileId);
+  var logSheet = backupSs.getSheetByName(SHEET_LOGS);
+  if (!logSheet) throw new Error('ไม่พบชีต "' + SHEET_LOGS + '" ในไฟล์ backup นี้');
+
+  var logs = getData(logSheet);
+  var groups = {};
+  logs.forEach(function(row) {
+    var gid = row.GroupID;
+    if (!gid) return;
+    if (!groups[gid]) {
+      groups[gid] = { GroupID: gid, Date: row.Date, Site: row.Site, JobDetail: row.JobDetail, RequestedBy: row.RequestedBy, Workers: [] };
+    }
+    groups[gid].Workers.push(row);
+  });
+
+  var groupList = Object.keys(groups).map(function(gid) { return groups[gid]; });
+  groupList.sort(function(a, b) {
+    var dateA = a.Date ? toLocalDateStr(a.Date) : '';
+    var dateB = b.Date ? toLocalDateStr(b.Date) : '';
+    return dateB.localeCompare(dateA);
+  });
+
+  return { fileName: backupSs.getName(), logs: groupList };
+}
+
+/**
+ * กู้คืนใบงานที่เลือก (ตาม GroupID) จากไฟล์ Backup กลับเข้าระบบปัจจุบัน
+ * - ใบงานที่ GroupID ซ้ำกับที่มีอยู่แล้วในระบบจะถูกข้าม (ไม่เขียนทับ)
+ * - คัดลอกรูปภาพ (Images) ของใบงานที่กู้คืนสำเร็จมาด้วย — ไฟล์รูปจริงยังอยู่ที่ Drive เดิม ไม่ได้ถูกลบตอน "ล้างบันทึก"
+ */
+function restoreBackupGroups(payload) {
+  var fileId = payload.fileId;
+  var groupIds = payload.groupIds || [];
+  if (!fileId) throw new Error('ต้องระบุ fileId ของไฟล์ backup');
+  if (!groupIds.length) throw new Error('กรุณาเลือกใบงานที่ต้องการกู้คืนอย่างน้อย 1 รายการ');
+
+  var backupSs = SpreadsheetApp.openById(fileId);
+  var backupLogSheet = backupSs.getSheetByName(SHEET_LOGS);
+  if (!backupLogSheet) throw new Error('ไม่พบชีต "' + SHEET_LOGS + '" ในไฟล์ backup นี้');
+
+  var backupLogs = getData(backupLogSheet);
+  var backupGroupRows = {};
+  backupLogs.forEach(function(row) {
+    var gid = String(row.GroupID);
+    if (!backupGroupRows[gid]) backupGroupRows[gid] = [];
+    backupGroupRows[gid].push(row);
+  });
+
+  var liveSheet = getSheet(SHEET_LOGS);
+  var liveData = liveSheet.getDataRange().getValues();
+  var existingGroupIds = {};
+  var maxId = 0;
+  for (var i = 1; i < liveData.length; i++) {
+    if (liveData[i][1]) existingGroupIds[String(liveData[i][1])] = true;
+    if (liveData[i][0]) maxId = Math.max(maxId, Number(liveData[i][0]));
+  }
+
+  var restoredGroupIds = [];
+  var skippedGroupIds = [];
+  var rowsToAppend = [];
+
+  groupIds.forEach(function(gidRaw) {
+    var gid = String(gidRaw);
+    if (existingGroupIds[gid] || !backupGroupRows[gid]) {
+      skippedGroupIds.push(gid);
+      return;
+    }
+    backupGroupRows[gid].forEach(function(row) {
+      maxId++;
+      rowsToAppend.push([
+        maxId, row.GroupID, row.Date, row.Site, row.JobDetail, row.RequestedBy,
+        row.WorkerName, row.DailyWage, row.WageType, row.Hours, row.OTHours,
+        row.FixedAmount, row.RawWage, row.TotalWithMarkup, row.CreatedAt
+      ]);
+    });
+    restoredGroupIds.push(gid);
+  });
+
+  if (rowsToAppend.length > 0) {
+    liveSheet.getRange(liveSheet.getLastRow() + 1, 1, rowsToAppend.length, rowsToAppend[0].length).setValues(rowsToAppend);
+  }
+
+  if (restoredGroupIds.length > 0) {
+    var backupImgSheet = backupSs.getSheetByName(SHEET_IMAGES);
+    if (backupImgSheet) {
+      var backupImgData = backupImgSheet.getDataRange().getValues();
+      var liveImgSheet = getSheet(SHEET_IMAGES);
+      var restoredSet = {};
+      restoredGroupIds.forEach(function(gid) { restoredSet[gid] = true; });
+      for (var k = 1; k < backupImgData.length; k++) {
+        var imgGid = String(backupImgData[k][0]);
+        if (restoredSet[imgGid]) {
+          liveImgSheet.appendRow([backupImgData[k][0], backupImgData[k][1]]);
+        }
+      }
+    }
+  }
+
+  SpreadsheetApp.flush();
+  return { restored: restoredGroupIds, skipped: skippedGroupIds };
 }
