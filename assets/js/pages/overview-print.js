@@ -1,5 +1,5 @@
 (() => {
-  const { thaiDateShort, buildOverview } = OverviewLogic;
+  const { thaiDateShort, buildOverview, buildOverallSummary } = OverviewLogic;
 
   function renderRunRow(run) {
     const rangeLabel = run.startDate === run.endDate
@@ -7,25 +7,24 @@
       : `${thaiDateShort(run.startDate)} – ${thaiDateShort(run.endDate)}`;
     return `
       <tr>
-        <td>${rangeLabel}</td>
-        <td class="text-center">${run.days}</td>
+        <td class="nowrap">${rangeLabel}</td>
+        <td class="text-center nowrap">${run.days}</td>
         <td>${Utils.escapeHtml(run.jobDetail || '(ไม่ระบุรายละเอียด)')}</td>
-        <td class="text-center">${run.avgWorkersPerDay.toFixed(1)}</td>
+        <td class="text-center nowrap">${run.avgWorkersPerDay.toFixed(1)}</td>
       </tr>
     `;
   }
 
-  function renderStreakLine(site) {
-    if (!site.streaks.length) return 'ยังไม่มีข้อมูลวันทำงาน';
-    return site.streaks.map(s => {
-      const rangeLabel = s.startDate === s.endDate ? thaiDateShort(s.startDate) : `${thaiDateShort(s.startDate)} – ${thaiDateShort(s.endDate)}`;
-      let text = `ทำงานต่อเนื่อง ${s.days} วัน (${rangeLabel})`;
-      if (s.gapDays > 0) {
-        const gapLabel = s.gapStart === s.gapEnd ? thaiDateShort(s.gapStart) : `${thaiDateShort(s.gapStart)} – ${thaiDateShort(s.gapEnd)}`;
-        text += ` → หยุด ${s.gapDays} วัน (${gapLabel})`;
-      }
-      return text;
-    }).join(' → ');
+  function renderOverallSummary(logs) {
+    const s = buildOverallSummary(logs);
+    if (!s.firstDate) return '';
+    const rangeLabel = `${thaiDateShort(s.firstDate)} – ${thaiDateShort(s.lastDate)}`;
+    return `
+      <div class="overall-summary">
+        <strong>สรุปวันทำงานภาพรวม:</strong> ตั้งแต่วันที่ ${rangeLabel} (รวม ${s.totalDays} วัน) —
+        มาทำงาน <strong>${s.workedDays}</strong> วัน · หยุด <strong>${s.offDays}</strong> วัน
+      </div>
+    `;
   }
 
   function renderSite(site) {
@@ -37,8 +36,14 @@
       <div class="req-block">
         <div class="req-title">สั่งงานโดย: ${Utils.escapeHtml(r.requester)} (${r.totalGroups} ใบงาน)</div>
         <table class="doc-table">
+          <colgroup>
+            <col style="width:24mm">
+            <col style="width:14mm">
+            <col>
+            <col style="width:22mm">
+          </colgroup>
           <thead>
-            <tr><th>ช่วงวันที่</th><th class="text-center">จำนวนวัน</th><th>รายละเอียดงาน</th><th class="text-center">เฉลี่ยคนงาน/วัน</th></tr>
+            <tr><th class="nowrap">ช่วงวันที่</th><th class="text-center nowrap">วัน</th><th>รายละเอียดงาน</th><th class="text-center nowrap">คนงาน</th></tr>
           </thead>
           <tbody>${r.runs.map(renderRunRow).join('')}</tbody>
         </table>
@@ -49,7 +54,6 @@
       <div class="site-block">
         <h2>${Utils.escapeHtml(site.site)}</h2>
         <div class="site-meta">${site.totalGroups} ใบงาน · ${dateRangeLabel}</div>
-        <div class="site-streak"><strong>สรุปวันทำงาน:</strong> ${renderStreakLine(site)}</div>
         ${requesterBlocks}
       </div>
     `;
@@ -57,6 +61,7 @@
 
   async function load() {
     const container = document.getElementById('sites-container');
+    const summaryEl = document.getElementById('overall-summary');
     document.getElementById('generated-at').textContent = new Date().toLocaleString('th-TH', { dateStyle: 'long', timeStyle: 'short' });
     try {
       const data = await Api.getLogs({});
@@ -65,6 +70,7 @@
         container.innerHTML = '<p>ยังไม่มีข้อมูลใบงาน</p>';
         return;
       }
+      summaryEl.innerHTML = renderOverallSummary(logs);
       const siteReports = buildOverview(logs);
       container.innerHTML = siteReports.map(renderSite).join('');
       document.getElementById('print-btn').disabled = false;

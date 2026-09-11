@@ -503,24 +503,6 @@ textarea.field-input {
 .overview-run-detail { font-weight: 600; margin-top: 0.2rem; }
 .overview-run-desc { font-size: 0.82rem; color: var(--ink-soft); margin-top: 0.15rem; }
 
-.week-strip-wrap { margin-bottom: 0.9rem; }
-.week-strip-title { font-size: 0.82rem; color: var(--ink-soft); margin-bottom: 0.4rem; }
-.week-strip { display: flex; gap: 0.4rem; }
-.week-cell {
-  flex: 1;
-  text-align: center;
-  border-radius: 6px;
-  padding: 0.4rem 0.2rem;
-  border: 1px solid var(--line);
-}
-.week-cell-label { font-size: 0.7rem; color: var(--ink-soft); }
-.week-cell-icon { font-size: 1rem; font-weight: 700; margin-top: 0.15rem; }
-.week-worked { background: rgba(63,143,95,0.12); border-color: var(--green); }
-.week-worked .week-cell-icon { color: var(--green); }
-.week-off .week-cell-icon { color: var(--red); }
-.week-future { opacity: 0.5; }
-.week-today { outline: 2px solid var(--amber); outline-offset: -2px; }
-
 .streak-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; font-size: 0.82rem; }
 .streak-chip { padding: 0.25rem 0.6rem; border-radius: 999px; white-space: nowrap; }
 .streak-work { background: rgba(63,143,95,0.12); color: var(--green); font-weight: 600; }

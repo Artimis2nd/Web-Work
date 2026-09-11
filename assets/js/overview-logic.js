@@ -38,22 +38,6 @@ const OverviewLogic = (() => {
     return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
   }
 
-  function getWeekRange(refDate) {
-    // สัปดาห์ จันทร์-อาทิตย์
-    const d = new Date(refDate);
-    const day = d.getDay(); // 0 = อาทิตย์
-    const diffToMonday = day === 0 ? -6 : 1 - day;
-    const monday = new Date(d);
-    monday.setDate(d.getDate() + diffToMonday);
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      const dt = new Date(monday);
-      dt.setDate(monday.getDate() + i);
-      days.push(Utils.toApiDate(dt));
-    }
-    return days;
-  }
-
   function newRun(entry) {
     return {
       jobDetail: entry.jobDetail,
@@ -131,6 +115,20 @@ const OverviewLogic = (() => {
     return streaks;
   }
 
+  // สรุปวันทำงานภาพรวมทั้งหมด (ไม่แยกตามไซต์งาน) — ใช้วันที่ของใบงานทั้งหมดรวมกัน
+  function buildOverallSummary(logs) {
+    const uniqueDates = Array.from(new Set(logs.map(g => Utils.toApiDate(g.Date)).filter(Boolean))).sort();
+    if (!uniqueDates.length) {
+      return { firstDate: null, lastDate: null, totalDays: 0, workedDays: 0, offDays: 0 };
+    }
+    const firstDate = uniqueDates[0];
+    const lastDate = uniqueDates[uniqueDates.length - 1];
+    const totalDays = diffDays(firstDate, lastDate) + 1;
+    const workedDays = uniqueDates.length;
+    const offDays = totalDays - workedDays;
+    return { firstDate, lastDate, totalDays, workedDays, offDays };
+  }
+
   function buildOverview(logs) {
     const bySite = new Map();
     logs.forEach(g => {
@@ -166,9 +164,6 @@ const OverviewLogic = (() => {
 
       const uniqueDates = Array.from(new Set(sorted.map(g => Utils.toApiDate(g.Date)).filter(Boolean))).sort();
       const streaks = buildStreaks(uniqueDates);
-      const weekDays = getWeekRange(new Date());
-      const workedSet = new Set(uniqueDates);
-      const todayStr = Utils.toApiDate(new Date());
 
       siteReports.push({
         site,
@@ -176,10 +171,7 @@ const OverviewLogic = (() => {
         firstDate: uniqueDates[0] || null,
         lastDate: uniqueDates[uniqueDates.length - 1] || null,
         requesterReports,
-        streaks,
-        weekDays,
-        workedSet,
-        todayStr
+        streaks
       });
     });
 
@@ -187,5 +179,5 @@ const OverviewLogic = (() => {
     return siteReports;
   }
 
-  return { normalizeJob, isSameJob, diffDays, addDays, thaiDateShort, getWeekRange, buildRuns, buildStreaks, buildOverview };
+  return { normalizeJob, isSameJob, diffDays, addDays, thaiDateShort, buildRuns, buildStreaks, buildOverview, buildOverallSummary };
 })();

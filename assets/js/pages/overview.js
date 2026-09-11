@@ -20,32 +20,6 @@
     `;
   }
 
-  function renderWeekStrip(site) {
-    const dayLabels = ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'];
-    const cells = site.weekDays.map((d, i) => {
-      const isFuture = d > site.todayStr;
-      const isToday = d === site.todayStr;
-      const worked = site.workedSet.has(d);
-      let stateClass = 'week-off';
-      let icon = '–';
-      if (isFuture) { stateClass = 'week-future'; icon = '·'; }
-      else if (worked) { stateClass = 'week-worked'; icon = '✓'; }
-      return `
-        <div class="week-cell ${stateClass} ${isToday ? 'week-today' : ''}" title="${d}">
-          <div class="week-cell-label">${dayLabels[i]}</div>
-          <div class="week-cell-icon">${icon}</div>
-        </div>
-      `;
-    }).join('');
-    const workedCount = site.weekDays.filter(d => site.workedSet.has(d)).length;
-    return `
-      <div class="week-strip-wrap">
-        <div class="week-strip-title">สัปดาห์นี้ — ทำงาน ${workedCount}/7 วัน</div>
-        <div class="week-strip">${cells}</div>
-      </div>
-    `;
-  }
-
   function renderStreaks(site) {
     if (!site.streaks.length) return '<div style="color:var(--ink-soft)">ยังไม่มีข้อมูลวันทำงาน</div>';
     const parts = site.streaks.map(s => {
@@ -81,7 +55,6 @@
 
         <div class="overview-section">
           <div class="overview-section-title">สรุปวันทำงาน</div>
-          ${renderWeekStrip(site)}
           ${renderStreaks(site)}
         </div>
 
