@@ -81,10 +81,10 @@
   .doc-table td.text-center, .doc-table th.text-center { text-align: center; }
   .doc-table td.nowrap, .doc-table th.nowrap { white-space: nowrap; }
 
-  @page { size: A4 portrait; margin: 0; }
+  @page { size: A4 portrait; margin: 10mm 15mm; }
   @media print {
     body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .print-wrapper { padding: 10mm 15mm; max-width: 100%; box-shadow: none; }
+    .print-wrapper { padding: 0; max-width: 100%; box-shadow: none; }
     .no-print { display: none !important; }
   }
 
