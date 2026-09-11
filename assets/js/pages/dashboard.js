@@ -3,17 +3,6 @@
 
   const content = document.getElementById('page-content');
 
-  const ACTION_PIN = '1225';
-  function verifyPin() {
-    const pin = prompt('การทำงานนี้ต้องใส่รหัสผ่านก่อน\nกรุณาใส่รหัส:');
-    if (pin === null) return false;
-    if (pin.trim() !== ACTION_PIN) {
-      Utils.toast('รหัสผ่านไม่ถูกต้อง — ยกเลิกการทำงาน', 'error');
-      return false;
-    }
-    return true;
-  }
-
   function skeletonKpis() {
     content.innerHTML = `
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -320,7 +309,7 @@
     const backupBtn = document.getElementById('backup-btn');
     if (backupBtn) {
       backupBtn.addEventListener('click', async () => {
-        if (!verifyPin()) return;
+        if (!Utils.verifyPin()) return;
         if (!confirm('สำรองไฟล์ฐานข้อมูล (WageSystem-Data) ไปยัง Google Drive ตอนนี้หรือไม่?')) return;
         try {
           const result = await Utils.animateProgress(
@@ -344,7 +333,7 @@
     const loadBackupBtn = document.getElementById('load-backup-btn');
     if (loadBackupBtn) {
       loadBackupBtn.addEventListener('click', () => {
-        if (!verifyPin()) return;
+        if (!Utils.verifyPin()) return;
         openBackupListModal();
       });
     }
@@ -353,7 +342,7 @@
     const clearBtn = document.getElementById('clear-logs-btn');
     if (clearBtn) {
       clearBtn.addEventListener('click', async () => {
-        if (!verifyPin()) return;
+        if (!Utils.verifyPin()) return;
         const typed = prompt('การกระทำนี้จะลบ "ใบงานทั้งหมด" ออกจากระบบอย่างถาวร กู้คืนไม่ได้\nแนะนำให้กด "Backup ไฟล์" ก่อนทุกครั้ง\n\nพิมพ์คำว่า ลบ เพื่อยืนยันการล้างบันทึก:');
         if (typed === null) return;
         if (typed.trim() !== 'ลบ') {

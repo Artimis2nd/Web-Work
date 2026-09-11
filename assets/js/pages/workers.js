@@ -2,6 +2,30 @@
   Utils.renderShell('workers.html', 'จัดการรายชื่อคนงาน');
   const content = document.getElementById('page-content');
 
+  function showLocked() {
+    content.innerHTML = `
+      <div class="ledger-card p-8 text-center">
+        <div class="text-4xl mb-3">🔒</div>
+        <h2 class="font-display text-lg font-semibold mb-2">เมนูนี้ถูกจำกัดสิทธิ์การเข้าถึง</h2>
+        <p class="mb-4" style="color:var(--ink-soft)">ต้องใส่รหัสผ่านก่อนจึงจะเข้าใช้งาน "จัดการคนงาน" ได้</p>
+        <div class="flex gap-2 justify-center">
+          <button id="retry-pin-btn" class="btn btn-primary">ใส่รหัสผ่าน</button>
+          <a href="index.html" class="btn btn-outline">กลับหน้าแรก</a>
+        </div>
+      </div>
+    `;
+    document.getElementById('retry-pin-btn').addEventListener('click', checkAccess);
+  }
+
+  function checkAccess() {
+    if (Utils.verifyPin('เมนู "จัดการคนงาน" ต้องใส่รหัสผ่านก่อนเข้าใช้งาน\nกรุณาใส่รหัส:')) {
+      layout();
+      loadTable();
+    } else {
+      showLocked();
+    }
+  }
+
   let editingId = null;
 
   function layout() {
@@ -158,6 +182,5 @@
     }
   }
 
-  layout();
-  loadTable();
+  checkAccess();
 })();

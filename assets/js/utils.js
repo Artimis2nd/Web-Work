@@ -45,6 +45,17 @@ const Utils = (() => {
     return !isNaN(date.getTime()) ? toInputDate(date) : null;
   }
 
+  const ACTION_PIN = '1225';
+  function verifyPin(message) {
+    const pin = prompt(message || 'การทำงานนี้ต้องใส่รหัสผ่านก่อน\nกรุณาใส่รหัส:');
+    if (pin === null) return false;
+    if (pin.trim() !== ACTION_PIN) {
+      toast('รหัสผ่านไม่ถูกต้อง — ยกเลิกการทำงาน', 'error');
+      return false;
+    }
+    return true;
+  }
+
   function toast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -285,5 +296,5 @@ const Utils = (() => {
     }
   }
 
-  return { money, smartMoney, formatDate, toInputDate, toApiDate, toast, skeletonRows, errorBanner, escapeHtml, renderShell, compressImage, animateProgress };
+  return { money, smartMoney, formatDate, toInputDate, toApiDate, toast, verifyPin, skeletonRows, errorBanner, escapeHtml, renderShell, compressImage, animateProgress };
 })();
