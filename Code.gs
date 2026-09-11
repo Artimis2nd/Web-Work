@@ -24,6 +24,7 @@
 // CONFIGURATION
 // ============================================================
 var DRIVE_FOLDER_ID = '1Os8Ntkx2DR5xbzK0JHE_hPG1OjA0WAgp'; // โฟลเดอร์หลักสำหรับเก็บรูปภาพ
+var BACKUP_FOLDER_ID = '1Ixsqd83JazQOqf5QFhfVqLIQcF28AEFU'; // โฟลเดอร์สำหรับเก็บไฟล์สำรอง (Backup) ของ Spreadsheet
 var MARKUP_RATE = 1.2; // +20%
 var HOURLY_DIVISOR = 8; // 1 วัน = 8 ชม.
 var FERN_NAME = 'เฟิร์น'; // ชื่อคนงานที่ยกเว้น markup
@@ -108,6 +109,8 @@ function doPost(e) {
       case 'getPivotReport': response.data = getPivotReport(payload); break;
       case 'getSiteHistory': response.data = getSiteHistory(); break;
       case 'getRequesterHistory': response.data = getRequesterHistory(); break;
+      case 'backupSpreadsheet': response.data = backupSpreadsheet(); break;
+      case 'clearAllLogs': response.data = clearAllLogs(); break;
       default: throw new Error('Unknown action: ' + action);
     }
     response.ok = true;
@@ -594,4 +597,46 @@ function getPivotReport(payload) {
   var grandTotalRaw = 0, grandTotalMarkup = 0;
   rows.forEach(function(r) { grandTotalRaw += r.totalRaw; grandTotalMarkup += r.totalMarkup; });
   return { groupBy: groupBy, grandTotalRaw: grandTotalRaw, grandTotalMarkup: grandTotalMarkup, rows: rows };
+}
+
+// ============================================================
+// BACKUP / CLEAR
+// ============================================================
+
+/**
+ * สำเนาไฟล์ Spreadsheet ปัจจุบัน (WageSystem-Data) ไปเก็บไว้ใน BACKUP_FOLDER_ID
+ * ตั้งชื่อไฟล์สำเนาเป็น "เบิกงวด DD-MM-YYYY"
+ */
+function backupSpreadsheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var file = DriveApp.getFileById(ss.getId());
+  var folder = DriveApp.getFolderById(BACKUP_FOLDER_ID);
+  var newName = 'เบิกงวด ' + formatBackupDate();
+  var copy = file.makeCopy(newName, folder);
+  return { fileId: copy.getId(), fileName: copy.getName(), url: copy.getUrl() };
+}
+
+function formatBackupDate() {
+  var d = new Date();
+  var day = String(d.getDate()).padStart(2, '0');
+  var month = String(d.getMonth() + 1).padStart(2, '0');
+  var year = d.getFullYear();
+  return day + '-' + month + '-' + year;
+}
+
+/**
+ * ล้างรายการใบงานทั้งหมดในชีต DailyLogs และ Images (คงหัวคอลัมน์ไว้)
+ * ไม่ยุ่งกับชีต Workers และไม่ลบไฟล์รูปภาพใน Drive
+ */
+function clearAllLogs() {
+  var logSheet = getSheet(SHEET_LOGS);
+  var logLastRow = logSheet.getLastRow();
+  if (logLastRow > 1) logSheet.deleteRows(2, logLastRow - 1);
+
+  var imgSheet = getSheet(SHEET_IMAGES);
+  var imgLastRow = imgSheet.getLastRow();
+  if (imgLastRow > 1) imgSheet.deleteRows(2, imgLastRow - 1);
+
+  SpreadsheetApp.flush();
+  return { cleared: true };
 }

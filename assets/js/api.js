@@ -53,6 +53,8 @@ const Api = (() => {
     getLogGroup: (payload) => call('getLogGroup', payload),
     updateLogGroup: (payload) => call('updateLogGroup', payload),
     getSiteHistory: () => call('getSiteHistory'),
-    getRequesterHistory: () => call('getRequesterHistory')
+    getRequesterHistory: () => call('getRequesterHistory'),
+    backupSpreadsheet: () => call('backupSpreadsheet'),
+    clearAllLogs: () => call('clearAllLogs')
   };
 })();

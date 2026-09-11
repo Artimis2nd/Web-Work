@@ -68,6 +68,8 @@
           <div class="flex gap-2">
             <button id="view-selected-btn" class="btn btn-outline btn-sm">📋 ดูรายการ</button>
             <a href="daily-log.html" class="btn btn-amber btn-sm">+ บันทึกงานใหม่</a>
+            <button id="backup-btn" class="btn btn-outline btn-sm">💾 Backup ไฟล์</button>
+            <button id="clear-logs-btn" class="btn btn-danger btn-sm">🗑️ ล้างบันทึก</button>
           </div>
         </div>
         <div class="overflow-x-auto">
@@ -142,6 +144,54 @@
         }
         sessionStorage.setItem('printGroups', JSON.stringify(ids));
         window.open('summary-print.html', '_blank');
+      });
+    }
+
+    // Backup button
+    const backupBtn = document.getElementById('backup-btn');
+    if (backupBtn) {
+      backupBtn.addEventListener('click', async () => {
+        if (!confirm('สำรองไฟล์ฐานข้อมูล (WageSystem-Data) ไปยัง Google Drive ตอนนี้หรือไม่?')) return;
+        try {
+          const result = await Utils.animateProgress(
+            backupBtn,
+            Api.backupSpreadsheet(),
+            'กำลังสำรองไฟล์...',
+            '✅ สำรองสำเร็จ'
+          );
+          Utils.toast('สำรองไฟล์เรียบร้อย: ' + result.fileName, 'success');
+          setTimeout(() => {
+            backupBtn.disabled = false;
+            backupBtn.innerHTML = '💾 Backup ไฟล์';
+          }, 1500);
+        } catch (err) {
+          Utils.toast(err.message, 'error');
+        }
+      });
+    }
+
+    // Clear logs button
+    const clearBtn = document.getElementById('clear-logs-btn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', async () => {
+        const typed = prompt('การกระทำนี้จะลบ "ใบงานทั้งหมด" ออกจากระบบอย่างถาวร กู้คืนไม่ได้\nแนะนำให้กด "Backup ไฟล์" ก่อนทุกครั้ง\n\nพิมพ์คำว่า ลบ เพื่อยืนยันการล้างบันทึก:');
+        if (typed === null) return;
+        if (typed.trim() !== 'ลบ') {
+          Utils.toast('ข้อความยืนยันไม่ถูกต้อง — ยกเลิกการล้างบันทึก', 'error');
+          return;
+        }
+        try {
+          await Utils.animateProgress(
+            clearBtn,
+            Api.clearAllLogs(),
+            'กำลังล้างบันทึก...',
+            '✅ ล้างสำเร็จ'
+          );
+          Utils.toast('ล้างบันทึกเรียบร้อย', 'success');
+          load();
+        } catch (err) {
+          Utils.toast(err.message, 'error');
+        }
       });
     }
   }

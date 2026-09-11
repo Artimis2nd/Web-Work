@@ -271,11 +271,12 @@ const Utils = (() => {
     }, 120);
 
     try {
-      await actionPromise;
+      const result = await actionPromise;
       clearInterval(interval);
       fill.style.width = '100%';
       label.textContent = successText;
       button.classList.add('progress-success');
+      return result;
     } catch (error) {
       clearInterval(interval);
       button.innerHTML = originalContent;
