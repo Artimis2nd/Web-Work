@@ -81,6 +81,23 @@ function setupSheets() {
   Logger.log('ตั้งค่า Sheets เรียบร้อย');
 }
 
+/**
+ * ฟังก์ชันซ่อมแซมข้อมูล — เรียงเลข ID คนงานในชีต Workers ใหม่ให้เป็นตัวเลขเรียง 1,2,3...
+ * ใช้แก้ปัญหา ID เก่าที่เป็น string แปลกๆ (เช่น "W1784178589597") ซึ่งทำให้เพิ่ม/แก้ไข/ลบคนงานพัง
+ * วิธีใช้: เลือกฟังก์ชันนี้จาก dropdown ด้านบนของ Apps Script editor แล้วกด Run (รันครั้งเดียว)
+ * ปลอดภัย — ไม่กระทบข้อมูลใบงาน (DailyLogs) เพราะระบบอ้างอิงคนงานด้วยชื่อ ไม่ใช่ ID
+ */
+function renumberWorkerIds() {
+  var sheet = getSheet(SHEET_WORKERS);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
+  for (var i = 2; i <= lastRow; i++) {
+    sheet.getRange(i, 1).setValue(i - 1);
+  }
+  SpreadsheetApp.flush();
+  Logger.log('เรียงเลข ID คนงานใหม่เรียบร้อย ' + (lastRow - 1) + ' คน');
+}
+
 // ============================================================
 // DO GET/POST
 // ============================================================
@@ -232,7 +249,8 @@ function addWorker(payload) {
   var data = sheet.getDataRange().getValues();
   var maxId = 0;
   for (var i = 1; i < data.length; i++) {
-    if (data[i][0]) maxId = Math.max(maxId, Number(data[i][0]));
+    var idNum = Number(data[i][0]);
+    if (!isNaN(idNum)) maxId = Math.max(maxId, idNum); // ข้าม ID เก่าที่ไม่ใช่ตัวเลข (เช่น "W...") ไม่ให้ NaN ทำให้ ID ใหม่พัง
   }
   sheet.appendRow([maxId + 1, payload.fullName, Number(payload.dailyWage) || 0, payload.status || 'Active']);
   SpreadsheetApp.flush();
@@ -242,9 +260,9 @@ function addWorker(payload) {
 function updateWorker(payload) {
   var sheet = getSheet(SHEET_WORKERS);
   var data = sheet.getDataRange().getValues();
-  var id = Number(payload.id);
+  var id = String(payload.id);
   for (var i = 1; i < data.length; i++) {
-    if (Number(data[i][0]) === id) {
+    if (String(data[i][0]) === id) {
       sheet.getRange(i + 1, 2).setValue(payload.fullName);
       sheet.getRange(i + 1, 3).setValue(Number(payload.dailyWage) || 0);
       sheet.getRange(i + 1, 4).setValue(payload.status || 'Active');
@@ -258,9 +276,9 @@ function updateWorker(payload) {
 function deleteWorker(payload) {
   var sheet = getSheet(SHEET_WORKERS);
   var data = sheet.getDataRange().getValues();
-  var id = Number(payload.id);
+  var id = String(payload.id);
   for (var i = 1; i < data.length; i++) {
-    if (Number(data[i][0]) === id) {
+    if (String(data[i][0]) === id) {
       sheet.deleteRow(i + 1);
       SpreadsheetApp.flush();
       return { deleted: true };
