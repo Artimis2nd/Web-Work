@@ -651,13 +651,19 @@ function formatBackupDate() {
  * ไม่ยุ่งกับชีต Workers และไม่ลบไฟล์รูปภาพใน Drive
  */
 function clearAllLogs() {
+  // ใช้ clearContent() แทน deleteRows() เพราะ deleteRows() จะ error "ลบทุกแถวที่ไม่ได้ตรึงไว้ไม่ได้"
+  // ถ้าชีตไม่มีแถวว่างเหลือด้านล่างข้อมูล (ทำให้ไม่เหลือแถวที่ไม่ได้ตรึงไว้เลยหลังลบ)
   var logSheet = getSheet(SHEET_LOGS);
   var logLastRow = logSheet.getLastRow();
-  if (logLastRow > 1) logSheet.deleteRows(2, logLastRow - 1);
+  if (logLastRow > 1) {
+    logSheet.getRange(2, 1, logLastRow - 1, logSheet.getLastColumn()).clearContent();
+  }
 
   var imgSheet = getSheet(SHEET_IMAGES);
   var imgLastRow = imgSheet.getLastRow();
-  if (imgLastRow > 1) imgSheet.deleteRows(2, imgLastRow - 1);
+  if (imgLastRow > 1) {
+    imgSheet.getRange(2, 1, imgLastRow - 1, imgSheet.getLastColumn()).clearContent();
+  }
 
   SpreadsheetApp.flush();
   return { cleared: true };
