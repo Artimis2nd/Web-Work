@@ -257,7 +257,7 @@
     } catch (err) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
-      td.colSpan = 5; // A sensible default
+      td.colSpan = tableHead.children.length || 9;
       td.appendChild(Utils.errorBanner(err.message, load));
       tr.appendChild(td);
       tbody.appendChild(tr);
