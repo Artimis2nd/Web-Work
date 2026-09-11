@@ -25,6 +25,7 @@
 // ============================================================
 var DRIVE_FOLDER_ID = '1Os8Ntkx2DR5xbzK0JHE_hPG1OjA0WAgp'; // โฟลเดอร์หลักสำหรับเก็บรูปภาพ
 var BACKUP_FOLDER_ID = '1Ixsqd83JazQOqf5QFhfVqLIQcF28AEFU'; // โฟลเดอร์สำหรับเก็บไฟล์สำรอง (Backup) ของ Spreadsheet
+var BACKUP_NAME_PREFIX = 'เบิกงวด'; // คำนำหน้าชื่อไฟล์ backup — ใช้กรองไม่ให้ listBackups() ดึงไฟล์อื่นในโฟลเดอร์เดียวกันมาด้วย
 var MARKUP_RATE = 1.2; // +20%
 var HOURLY_DIVISOR = 8; // 1 วัน = 8 ชม.
 var FERN_NAME = 'เฟิร์น'; // ชื่อคนงานที่ยกเว้น markup
@@ -614,7 +615,7 @@ function backupSpreadsheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var file = DriveApp.getFileById(ss.getId());
   var folder = DriveApp.getFolderById(BACKUP_FOLDER_ID);
-  var newName = 'เบิกงวด ' + formatBackupDate();
+  var newName = BACKUP_NAME_PREFIX + ' ' + formatBackupDate();
   var copy = file.makeCopy(newName, folder);
   return { fileId: copy.getId(), fileName: copy.getName(), url: copy.getUrl() };
 }
@@ -653,6 +654,7 @@ function listBackups() {
   var result = [];
   while (files.hasNext()) {
     var f = files.next();
+    if (f.getName().indexOf(BACKUP_NAME_PREFIX) !== 0) continue; // ข้ามไฟล์ที่ไม่ใช่ backup (เช่นไฟล์ฐานข้อมูลจริง หรือไฟล์อื่นในโฟลเดอร์เดียวกัน)
     result.push({ id: f.getId(), name: f.getName(), createdDate: f.getDateCreated().toISOString() });
   }
   result.sort(function(a, b) { return b.createdDate.localeCompare(a.createdDate); });
