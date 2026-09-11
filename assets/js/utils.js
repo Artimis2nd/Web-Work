@@ -111,6 +111,7 @@ const Utils = (() => {
   const NAV_ITEMS = [
     { href: 'index.html', label: 'หน้าแรก', icon: '&#128202;' },
     { href: 'daily-log.html', label: 'บันทึกงานประจำวัน', icon: '&#128221;' },
+    { href: 'overview.html', label: 'สรุปภาพรวมงาน', icon: '&#128200;' },
     { href: 'report.html', label: 'สรุปรายบุคคล', icon: '&#128100;' },
     { href: 'pivot-report.html', label: 'สรุปรายวัน/ไซต์งาน', icon: '&#128203;' },
     { href: 'workers.html', label: 'จัดการคนงาน', icon: '&#128119;' }

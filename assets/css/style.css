@@ -457,6 +457,76 @@ textarea.field-input {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ---------- Overview report ---------- */
+.overview-section { margin-top: 1.25rem; }
+.overview-section-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.6rem;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.4rem;
+}
+
+.overview-requester { margin-bottom: 1rem; }
+.overview-requester:last-child { margin-bottom: 0; }
+.overview-requester-title { font-weight: 600; margin-bottom: 0.5rem; }
+.overview-requester-count { font-weight: 400; color: var(--ink-soft); font-size: 0.85rem; }
+
+.overview-run-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.overview-run {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+}
+.overview-run-range {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--blueprint-dark);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.overview-run-days {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.72rem;
+  background: var(--blueprint);
+  color: #fff;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+}
+.overview-run-detail { font-weight: 600; margin-top: 0.2rem; }
+.overview-run-desc { font-size: 0.82rem; color: var(--ink-soft); margin-top: 0.15rem; }
+
+.week-strip-wrap { margin-bottom: 0.9rem; }
+.week-strip-title { font-size: 0.82rem; color: var(--ink-soft); margin-bottom: 0.4rem; }
+.week-strip { display: flex; gap: 0.4rem; }
+.week-cell {
+  flex: 1;
+  text-align: center;
+  border-radius: 6px;
+  padding: 0.4rem 0.2rem;
+  border: 1px solid var(--line);
+}
+.week-cell-label { font-size: 0.7rem; color: var(--ink-soft); }
+.week-cell-icon { font-size: 1rem; font-weight: 700; margin-top: 0.15rem; }
+.week-worked { background: rgba(63,143,95,0.12); border-color: var(--green); }
+.week-worked .week-cell-icon { color: var(--green); }
+.week-off .week-cell-icon { color: var(--red); }
+.week-future { opacity: 0.5; }
+.week-today { outline: 2px solid var(--amber); outline-offset: -2px; }
+
+.streak-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; font-size: 0.82rem; }
+.streak-chip { padding: 0.25rem 0.6rem; border-radius: 999px; white-space: nowrap; }
+.streak-work { background: rgba(63,143,95,0.12); color: var(--green); font-weight: 600; }
+.streak-off { background: rgba(193,68,60,0.1); color: var(--red); font-weight: 600; }
+.streak-arrow { color: var(--ink-soft); }
+
 /* ---------- Site filter dropdown ---------- */
 .site-filter-wrap {
   position: relative;
